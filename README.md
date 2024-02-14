@@ -14,17 +14,12 @@ To run this project on your local server, follow the following steps:
 
 * Install Django Crispy Forms by running this command:
 
-                      pip install django-crispy-forms
+                      pip install crispy-bootstrap5
+                      
 * Install Django Multi select fields on your computer:
 
                       pip install django-multiselectfield
-* If you don’t have Git Bash/Git Bucket on your computer. Then install it first.
-* Run this command on your git terminal
 
-                      git clone “https://github.com/mHuzefa/TimetableGeneratorApp.git”
-* After clonning the repository in your computer, run the command:
-
-                      cd TimetableGeneratorApp
 * Run this command to run server on your localhost:8000
 
                        python manage.py runserver
