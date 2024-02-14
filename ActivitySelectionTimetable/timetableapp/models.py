@@ -1,7 +1,6 @@
 from django.db import models
 from multiselectfield import MultiSelectField
 
-
 class Course(models.Model):
     COURSE_TYPE = (
         ('Theory', 'Theory'),
@@ -16,9 +15,6 @@ class Course(models.Model):
 
     def __str__(self):
         return self.course_id + ' - ' + self.course_name
-
-
-
 
 
 

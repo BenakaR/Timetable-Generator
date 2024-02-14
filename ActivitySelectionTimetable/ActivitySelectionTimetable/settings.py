@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'timetableapp.apps.TimetableappConfig',
     'crispy_forms',
-    'multiselectfield'
+    'crispy_bootstrap5',
+    'multiselectfield',
 
 ]
 
@@ -117,12 +118,13 @@ USE_L10N = True
 
 USE_TZ = True
 
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
     # "E:/A.S_Files/Semester_4/ALGO/ActivitySelection_Proj/CS311S20PID27/ActivitySelectionTimetable"
-    "C:/Users/huzi6/Desktop/CS311S20PID27/ActivitySelectionTimetable/"
+    # "C:/Users/huzi6/Desktop/CS311S20PID27/ActivitySelectionTimetable/"
 ]
 
 # Static files (CSS, JavaScript, Images)
