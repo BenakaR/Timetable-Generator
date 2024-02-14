@@ -1,7 +1,4 @@
 # Timetable Generator Web-Application
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)        ![Django](https://img.shields.io/badge/Made%20with-Django-blue?style=?style=plastic&logo=appveyor&logo=data:image/png;base64)
-
-###### This was final project with ![Abdullah Saleem](https://github.com/mrabdullahdev) for Analysis of Algorithm in Semester 4
 
 This is the Activity Scheduling Ptoject which will generate the timetable of different sections for user with required inputs.
 
@@ -49,8 +46,6 @@ When first we started the project we chosed the Greedy algorithm to perform for 
 3. You can download the PDF file of the timetable.
 4. A responsive app which can be used in any device.
 
-## Quick Demo   
-![Quick Demo](https://github.com/mrabdullahdev/CS311S20PID27/blob/master/Home%20-%20Activity%20Scheduling%20App.webm%20-%20Google%20Drive.gif "Quick Demo of website")
 
 ## Desktop View
 ![Desktop View](Screenshots/main-page.png "Main Page")
