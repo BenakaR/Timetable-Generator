@@ -1,53 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    {% load static %}
-  <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Styles -->
-    <link href="https://fonts.googleapis.com/css?family=Raleway:400,400i,600,700,700i&amp;subset=latin-ext" rel="stylesheet">
-	<link href="{% static 'css/style.css' %}" rel="stylesheet">
-    <link href="{% static 'css/tables.css' %}" rel="stylesheet">
-    <link href="{% static 'css/add.css' %}" rel="stylesheet">
-    <link href="{% static 'css/nav.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
-    <link rel="stylesheet" src="extensions/sticky-header/bootstrap-table-sticky-header.css">
-    <script src="extensions/sticky-header/bootstrap-table-sticky-header.js"></script>
-
-
-</head>
+{% extends 'timetableapp/main.html' %}
+{% load static %}
 {% block content %}
 <title>Home - Activity Scheduling App</title>
-<nav id="header" class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
-      <button class=" btn d-inline-block d-lg-none ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse collapse" data-toggle="collapse" aria-expanded="false" id="navbarNav">
-        <ul class="nav navbar-nav">
-          <li class="nav-item text-center active">
-            <a class="nav-link link" href="{% url 'selection' %}">Home <span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item text-center">
-            <a class="nav-link link" href="#course_display">Courses</a>
-          </li>
-          <li class="nav-item text-center">
-            <a class="nav-link link" href="#professor_display">Professors</a>
-          </li>
-          <li class="nav-item text-center">
-            <a class="nav-link link " href="#classroom_display">Classrooms</a>
-          </li>
-          <li class="nav-item text-center">
-            <a class="nav-link link " href="#class_display">Classes</a>
-          </li>
-
-        </ul>
-      </div>
-        </div>
-</nav>
 
     <img id="branding" src="{% static 'media/main_image.png' %}">
 
@@ -101,7 +55,7 @@
         <div id="courses">
             <h3 id="tag_course">Classrooms</h3>
             <p id="para_course">In this app, You have facility to add more than one class rooms at a time and it will generate the suitable timetable for you which you can access any time in your account.</p>
-            <a href="{% url 'add-classroom' %}"><button class="course_button">Add Classroom</button></a>
+            <a href="{% url 'add-classcourse' %}"><button class="course_button">Add Classroom</button></a>
         </div>
          <div><img  id="course_img" src="{% static 'media/classroom.png' %}"></div>
     </div>

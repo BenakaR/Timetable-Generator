@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
     <link rel="stylesheet" src="extensions/sticky-header/bootstrap-table-sticky-header.css">
-    <script src="extensions/sticky-header/bootstrap-table-sticky-header.js"></script>
+    <script type="javascript" src="extensions/sticky-header/bootstrap-table-sticky-header.js"></script>
 
 
 </head>
@@ -44,15 +44,17 @@
                             <li class="nav-item text-center">
                                 <a class="nav-link link" href="{% url 'add-professor' %}">Professors</a>
                             </li>
-
                             <li class="nav-item text-center">
-                                <a class="nav-link link"  href="{% url 'add-classroom' %}">Classrooms </a>
+                                <a class="nav-link link" href="{% url 'add-class' %}">Classes</a>
                             </li>
                             <li class="nav-item text-center">
-                                <a class="nav-link link" href="{% url 'add-class' %}">Sections</a>
+                                <a class="nav-link link" href="{% url 'add-classcourse' %}">Assign Class</a>
                             </li>
                             
-                            <a class="logout text-center" style="" href="{% url 'logout' %}" >
+                            <li class="nav-item text-center">
+                                <a class="nav-link link" href="{% url 'class_view' %}">Timetable</a>
+                            </li>
+                            <a class="logout text-center" href="{% url 'logout' %}" >
                             <li class="nav-item text-center">
                                 Logout
                             </li>

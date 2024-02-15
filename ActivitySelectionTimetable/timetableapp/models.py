@@ -49,15 +49,20 @@ class Class(models.Model):
     ('Wednesday', 'Wednesday'),
     ('Thursday', 'Thursday'),
     ('Friday', 'Friday'),
-    ('Saturday', 'Saturday'),
-    ('Sunday', 'Sunday')
+    ('Saturday', 'Saturday')
     )
 
     class_id = models.CharField(max_length=2000, primary_key=True)
     class_name = models.CharField(max_length=2000, null=True)
-    week_day = MultiSelectField(max_length=2000, choices=WEEK_DAY, max_choices=7)
-    start_time = models.PositiveIntegerField(null=True)
-    end_time = models.PositiveIntegerField(null=True)
+    week_day = MultiSelectField(max_length=2000, choices=WEEK_DAY, max_choices=6)
+    no_sessions = models.PositiveIntegerField(default = 8)
+    class_mins = models.PositiveIntegerField(default = 60)
+    start_time = models.TimeField(null=True)
+    end_time = models.TimeField(null=True)
+    break_start = models.TimeField(null=True)
+    break_start_2 = models.TimeField(null=True)
+    break_time = models.PositiveIntegerField(null=True)
+    break_time_2 = models.PositiveIntegerField(null=True)
 
     def __str__(self):
         return self.class_id #+ ' - ' + self.class_name
@@ -80,8 +85,6 @@ class SectionClassroom(models.Model):
 
     class_id = models.ForeignKey(Class,on_delete=models.CASCADE, default="")
     classroom_id = models.ForeignKey(Classroom,on_delete=models.CASCADE , default="")
-    #def __str__(self):
-     #   return self.class_id #+ ' - ' + self.classroom_id
 
 
 class Activity(models.Model):

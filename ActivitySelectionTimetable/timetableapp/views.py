@@ -9,6 +9,7 @@ from django.contrib.auth import authenticate, login, logout
 from .forms import *
 from .models import *
 from django.contrib.auth.decorators import login_required
+from datetime import timedelta,datetime
 
 from .models import Course
 
@@ -58,17 +59,14 @@ def registerPage(request):
 def home(request):
     course = CourseForm()
     professor = ProfessorForm()
-    classroom = ClassroomForm()
+    #classroom = ClassroomForm()
     section = ClassForm()
     sectioncourse = ClassCourseForm()
-    sectionclassroom = SectionClassroomForm()
+    #sectionclassroom = SectionClassroomForm()
     activity = ActivityForm()
     context = {
-
-                'course': course,'professor': professor,
-                'classroom': classroom, 'section': section,
-                'sectioncourse': sectioncourse, 'sectionclassroom': sectionclassroom, 'activity': activity
-
+                'course': course,'professor': professor,'section': section,
+                'sectioncourse': sectioncourse, 'activity': activity
             }
 
 
@@ -264,7 +262,7 @@ def deleteClass(request, pk):
     if request.method == 'POST':
         deleteActivities(pk)
         deleteCLassCourses(pk)
-        deleteSectionClassrooms(pk)
+        #deleteSectionClassrooms(pk)
         deleteClass.delete()
 
         return redirect('/class-view')
@@ -345,111 +343,124 @@ def GenerateTimeTable(request, id):
         sectioncourses = list(ClassCourse.objects.filter(class_id=id))
         sectionrooms = list(SectionClassroom.objects.filter(class_id=id))
         if len(sectioncourses) > 0:
-            if len(sectionrooms) > 0:
-                if Activity.objects.filter(class_id=id).count() != 0:
-                    #Activity.objects.filter(class_id=section.class_id).delete()
-                    deleteActivities(id)
-                totalDays = len(section.week_day)
-                totalRooms = len(sectionrooms)
-                workingHours = totalDays * (section.end_time - section.start_time)
+            if Activity.objects.filter(class_id=id).count() != 0:
+                #Activity.objects.filter(class_id=section.class_id).delete()
+                deleteActivities(id)
+            totalDays = len(section.week_day)
+            totalRooms = len(sectionrooms)
+            sessionlist, breaktime = timeCalculate(id)
+            lenSessList = len(sessionlist)-len(breaktime)
+            workingHours = totalDays * len(sessionlist)
                 # getting class room data
-                class_rooms = [Room() for i in range(totalRooms)]
-                for i in range(len(sectionrooms)):
-                    room = Classroom.objects.get(classroom_id=sectionrooms[i].classroom_id)
-                    class_rooms[i].ID = room.classroom_id
-                    class_rooms[i].TYPE = room.classroom_type
-                    # variable to save index of class room being used
-                roomNum = random.randint(0, totalRooms - 1)
-                lecDay = 0
-                lecStartTime = 0
-                DupNum = 0
-                for k in range(0, len(sectioncourses)):
-                    if DupNum > (workingHours + 5):
-                        break
+                # class_rooms = [Room() for i in range(totalRooms)]
+                # for i in range(len(sectionrooms)):
+                #     room = Classroom.objects.get(classroom_id=sectionrooms[i].classroom_id)
+                #     class_rooms[i].ID = room.classroom_id
+                #     class_rooms[i].TYPE = room.classroom_type
+                #     print(room)
+            # variable to save index of class room being used
+                #roomNum = random.randint(0, totalRooms - 1)
+            lecDay = 0
+            lecStartTime = 0
+            DupNum = 0
+            for k in range(0, len(sectioncourses)):
+                if DupNum > (workingHours + 5):
+                    break
+                try:
+                    course: Course = Course.objects.get(course_id=sectioncourses[k].course_id_id)
+                except Course.DoesNotExist:
+                    messages.error(request, 'Course not found')
+                    print("Hellooooo\nHelloooo6")
+                else:
                     try:
-                        course: Course = Course.objects.get(course_id=sectioncourses[k].course_id_id)
-                    except Course.DoesNotExist:
-                        messages.error(request, 'Course not found')
+                        professor = Professor.objects.get(professor_id=sectioncourses[k].professor_id_id)
+                    except Professor.DoesNotExist:
+                        messages.error(request, 'Professor not found')
+                        print("Hellooooo\nHelloooo5")
                     else:
-                        try:
-                            professor = Professor.objects.get(professor_id=sectioncourses[k].professor_id_id)
-                        except Professor.DoesNotExist:
-                            messages.error(request, 'Professor not found')
-                        else:
-                            courseLecs = course.credit_hours
-                            lecDuration = course.contact_hours / course.credit_hours
-                            j = 0
-                            while j < courseLecs:
-                                lecFlag = True
-                                if DupNum < workingHours + 5:
-                                    if DupNum < 5:
-                                        lecDay = random.randint(0, totalDays - 1)
-                                        lecStartTime = random.randint(section.start_time, section.end_time - 1)
-                                        if not lecStartTime <= section.end_time - lecDuration:
-                                            lecFlag = False
-                                    else:
-                                        lecStartTime += 1
-                                        if not lecStartTime <= section.end_time - lecDuration:
-                                            lecDay = (lecDay + 1) % totalDays
-                                            lecStartTime = section.start_time
-
-                                    if lecFlag:
-                                        if lecStartTime <= section.end_time - lecDuration:
-                                            tot = 0
-                                            while course.course_type != class_rooms[roomNum].TYPE or tot < totalRooms:
-                                                roomNum = (roomNum + 1) % totalRooms
-                                                tot += 1
-                                            activityFlag = True
-                                            activityID = [section.week_day[lecDay]] * int(lecDuration)
-                                            for i in range(int(lecDuration)):
-                                                activityID[i] += '-' + str(lecStartTime + i)
-                                                # for activity in activities:
-                                                if Activity.objects.filter(activity_id=activityID[i],
-                                                                        class_id=section.class_id).count() != 0 or \
-                                                        Activity.objects.filter(activity_id=activityID[i],
-                                                                                professor_id=professor.professor_id).count() != 0 or \
-                                                        Activity.objects.filter(activity_id=activityID[i],
-                                                                                classroom_id=class_rooms[
-                                                                                    roomNum].ID).count() != 0:
-                                                    activityFlag = False
-                                                    DupNum += 1
-                                                # break
-                                            if activityFlag:
-                                                print('Activity generated')
-                                                for i in range(int(lecDuration)):
-                                                    newActivity = Activity(activity_id=activityID[i],
-                                                                        activity_type='Replaceable',
-                                                                        class_id=section.class_id,
-                                                                        classroom_id=class_rooms[roomNum].ID,
-                                                                        course_id=course.course_id,
-                                                                        professor_id=professor.professor_id,
-                                                                        day=section.week_day[lecDay],
-                                                                        start_time=lecStartTime + i,
-                                                                        end_time=lecStartTime + i + 1)
-                                                    newActivity.save()
-                                                    professor.available_hours = professor.available_hours - 1
-                                                    professor.save()
-                                                DupNum = 0
-                                                j += 1
+                        courseLecs = course.credit_hours
+                        lecDuration = course.contact_hours / course.credit_hours
+                        j = 0
+                        while j < courseLecs:
+                            print("/",end="")
+                            lecFlag = True
+                            if DupNum < workingHours + 5:
+                                if DupNum < 5:
+                                    lecDay = random.randint(0, totalDays - 1)
+                                    lecStartTime = random.randint(0,lenSessList)
+                                    # while lecStartTime in breaktime:
+                                    #     lecStartTime = random.randint(0,lenSessList)
+                                    if lecStartTime + lecDuration > lenSessList:
+                                        lecFlag = False
                                 else:
-                                    #Activity.objects.filter(class_id=section.class_id).delete()
-                                    deleteActivities(id)
-                                    messages.error(request, 'Solution does not exist.')
-                                    DupNum +=1
-                                    break
-                messages.success(request, 'Timetable generated')
-                #return redirect('timetable/')
+                                    lecStartTime += 1
+                                    if lecStartTime + lecDuration > lenSessList:
+                                        lecDay = (lecDay + 1) % totalDays
+                                        lecStartTime = 0
 
-            else:
-                messages.error(request, 'Classroom does not exist.')
+                                if lecFlag:
+                                    if lecStartTime < lenSessList:
+                                        # tot = 0
+                                        # while course.course_type != class_rooms[roomNum].TYPE or tot < totalRooms:
+                                        #     #print(roomNum)
+                                        #     roomNum = (roomNum + 1) % totalRooms
+                                        #     tot += 1
+                                        activityFlag = True
+                                        activityID = [section.week_day[lecDay]] * int(lecDuration)
+                                        for i in range(int(lecDuration)):
+                                            print(".",end="")
+                                            activityID[i] += '-' + str(lecStartTime + i)
+                                            # for activity in activities:
+                                            if Activity.objects.filter(activity_id=activityID[i],
+                                                                    class_id=section.class_id).count() != 0 or \
+                                                    Activity.objects.filter(activity_id=activityID[i],
+                                                                            professor_id=professor.professor_id).count() != 0 :
+                                                    # Activity.objects.filter(activity_id=activityID[i],
+                                                    #                         classroom_id=class_rooms[
+                                                    #                             roomNum].ID).count() != 0:
+                                                activityFlag = False
+                                                DupNum += 1
+                                            # break
+                                        if activityFlag:
+                                            print('Activity generated')
+                                            for i in range(int(lecDuration)):
+                                                print(",",end="")
+                                                newActivity = Activity(activity_id=activityID[i],
+                                                                    activity_type='Replaceable',
+                                                                    class_id=section.class_id,
+                                                                    # classroom_id=class_rooms[roomNum].ID,
+                                                                    course_id=course.course_id,
+                                                                    professor_id=professor.professor_id,
+                                                                    day=section.week_day[lecDay],
+                                                                    start_time=lecStartTime + i,
+                                                                    end_time=lecStartTime + i + 1)
+                                                newActivity.save()
+                                                professor.available_hours = professor.available_hours - 1
+                                                professor.save()
+                                            DupNum = 0
+                                            j += 1
+                                            print("yes")
+
+                            else:
+                                #Activity.objects.filter(class_id=section.class_id).delete()
+                                deleteActivities(id)
+                                messages.error(request, 'Solution does not exist.')
+                                print("Hellooooo\nHelloooo4")
+                                DupNum +=1
+                                break
+            messages.success(request, 'Timetable generated')
+            print("Hellooo!!!oo\nHell!!!oooo3")
+            #return redirect('timetable/')
         else:
             messages.error(request, 'Courses does not exist.')
+            print("Hellooooo\nHelloooo1")
     except Class.DoesNotExist:
         messages.error(request, 'Class does not exist')
     
     
     sections = Class.objects.all()
     context = {'sections': sections}
+    print("!!")
     return render(request, 'timetableapp/ClassTable.html', context)
 
 
@@ -457,6 +468,7 @@ def GenerateTimeTable(request, id):
 def deleteActivities(id):
     activities = list(Activity.objects.filter(class_id=id))
     for activity in activities:
+        print("?",end="")
         course = Course.objects.get(course_id=activity.course_id)
         professor = Professor.objects.get(professor_id=activity.professor_id)
         professor.available_hours += 1
@@ -464,7 +476,31 @@ def deleteActivities(id):
     Activity.objects.filter(class_id=id).delete()
 
 
-
+def timeCalculate(id):
+    section = Class.objects.get(class_id=id)
+    l = []
+    st = datetime.combine(datetime.today(),section.start_time)
+    end = datetime.combine(datetime.today(),section.end_time)
+    min = section.class_mins
+    count=0
+    ll=[]
+    while st < end:
+        s = str(st.time())
+        if st.time()==section.break_start:
+            e = st + timedelta(minutes=section.break_time)
+            l.append( str(st.time()) + ' - ' + str(e.time()))
+            st = e
+            ll.append(count)
+        if st.time()==section.break_start_2:
+            e = st + timedelta(minutes=section.break_time_2)
+            l.append( str(st.time()) + ' - ' + str(e.time()))
+            st = e
+            ll.append(count)
+        st = st + timedelta(minutes=min)
+        s = s + ' - ' + str(st.time())
+        l.append(s)
+        count += 1
+    return l,ll
 
 
 
@@ -475,14 +511,26 @@ def TimeTableView(request, id):
         courses = Course.objects.all()
         professors = Professor.objects.all()
         activities = Activity.objects.filter(class_id=id)
-        rooms = Classroom.objects.all()
-        time = [0] * (section.end_time - section.start_time)
-        time_slot = [''] * (section.end_time - section.start_time)
-        for x in range(0, len(time)):
-            time_slot[x] = str(section.start_time + x) + ':00 - ' + str(section.start_time + x + 1) + ':00'
-            time[x] = section.start_time + x
-        context_1 = {'section': section, 'courses': courses, 'professors':professors, 'rooms': rooms, 
-                     'activities': activities, 'time': time, 'time_slot': time_slot  }
+        #rooms = Classroom.objects.all()
+        # time = [0] * (section.end_time - section.start_time)
+        # print(time)
+        # time_slot = [''] * (section.end_time - section.start_time)
+        # print(time_slot)
+        # for x in range(0, len(time)):
+        #     time_slot[x] = str(section.start_time + x) + ':00 - ' + str(section.start_time + x + 1) + ':00'
+        #     time[x] = section.start_time + x
+        st = datetime.combine(datetime.today(),section.start_time)
+        
+        end = datetime.combine(datetime.today(),section.end_time)
+        l,ll = timeCalculate(id)
+        breakss=[]
+        c=0
+        for i in ll:
+            breakss.append(l[i+c])
+            c += 1
+        context_1 = {'section': section, 'courses': courses, 'professors':professors, 
+                     'activities': activities, 'timings':l, 'timingss':range(len(l)-len(ll)), 'breaks':ll,
+                     'breakss':breakss }
         return render(request, 'timetableapp/TimeTable.html', context_1)
     except Class.DoesNotExist:
         messages.error(request, 'Activity does not exist')
