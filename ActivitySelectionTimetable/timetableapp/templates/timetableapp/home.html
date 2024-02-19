@@ -53,11 +53,12 @@
 
     <div id="classroom_display">
         <div id="courses">
-            <h3 id="tag_course">Classrooms</h3>
-            <p id="para_course">In this app, You have facility to add more than one class rooms at a time and it will generate the suitable timetable for you which you can access any time in your account.</p>
-            <a href="{% url 'add-classcourse' %}"><button class="course_button">Add Classroom</button></a>
+            <h3 id="tag_course">Classes</h3>
+            <p id="para_course">In this app, You have facility to add more than one classes at a time and it will generate the suitable timetable for you which you can access any time in your account.</p>
+            
+            <a href="{% url 'add-class' %}"><button class="course_button">Add Class</button></a>
         </div>
-         <div><img  id="course_img" src="{% static 'media/classroom.png' %}"></div>
+         <div><img  id="course_img" src="{% static 'media/class-01.png' %}"></div>
     </div>
 
     <br>
@@ -69,11 +70,11 @@
 
     <div id="class_display">
         <div id="professor">
-            <h3 id="prof_tag">Sections</h3>
-            <p id="prof_para">In this app, You have facility to add more than one classes at a time and it will generate the suitable timetable for you which you can access any time in your account.</p>
-            <a href="{% url 'add-class' %}"><input type="button" class="prof_button" value="Add Section"></a>
+            <h3 id="prof_tag">Course Selection</h3>
+            <p id="prof_para">In this app, You need to assign the courses and the professors handling them to the class.</p>
+            <a href="{% url 'add-classcourse' %}"><input type="button" class="prof_button" value="Assign Courses"></a>
         </div>
-         <div><img alt="class" id="prof_img" src="{% static 'media/class-01.png' %}"></div>
+         <div><img alt="class" id="prof_img" src="{% static 'media/classroom.png' %}"></div>
     </div>
 
 

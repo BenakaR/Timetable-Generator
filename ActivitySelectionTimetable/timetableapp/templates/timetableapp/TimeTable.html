@@ -103,7 +103,7 @@
           background-color: #dddddd;
         grid-area: week;
         display: grid;
-        grid-template-columns: repeat(9, 1fr);
+        grid-template-columns: repeat(9, auto);
         text-transform: uppercase;
         font-size: 12px;
         }
@@ -142,13 +142,34 @@
         .timetable .content {
         grid-area: content;
         display: grid;
+        
         grid-template-rows: auto;
-        grid-template-columns: repeat(9, 1fr);
+        grid-template-columns: repeat(9, auto);
         }
         .timetable .content > div {
         box-shadow: inset 1px 0 0 #eceff1, inset 0 1px 0 0 #eceff1;
+        margin: auto;
+        height: min-content;
+        
         }
-
+        .act{
+          text-align:center; 
+          margin:auto; 
+          background-color:rgb(255, 241, 244); 
+          padding:auto;
+          cursor:pointer;
+        }
+        .popup{
+          z-index: 40;
+          position: fixed;
+          background-color: #8eeec0;
+          width: 50%;
+          height: 70%;
+          margin: auto;
+        }
+        .popup-active{
+          display: none;
+        }
     </style>
 
 </head>
@@ -174,7 +195,7 @@
       {% for x in timings %}
 				
         {% if x in breakss %}
-        <div class="break">{{x}}</div>
+        <div class="break">{{x.0}} <br> {{x.1}}</div>
         {% else %}
         <div>{{x}}</div>
         {% endif %}
@@ -191,21 +212,24 @@
       {% for day in section.week_day %}
         {% for x in timingss %}
           {% if x in breaks %}
-          <div class="break">
-                <p style="text-align:center; margin:0; padding:0"> |  </p>
+          <div >
+                <p style="text-align:center; margin:auto"> |  </p>
           </div>
           {% endif %}
+
           <div>
+
             {% for activity in activities %}
               {% for course in courses %}
+                 <!-- {{ course }}  -->
+                {% if activity.course.course_id == course %}
                 
-                {% if activity.course_id == course.course_id %}
                   {% if activity.day == day %}
                     {% if  x == activity.start_time %}
-                    <p style="text-align:center; margin:0 important; padding:0 important">{{course.course_name}} -
-                      {{professor.professor_name}}
+                    <p class="act" onclick="location.href='{% url 'add-activity' activity.activity_id %}'">
+                    {{course}}
                     <br>
-                      {{activity.course_id}}
+                      {{activity.course.course_id.course_id}}
                     </p>
                     {% endif %}
                   {% endif %}
@@ -277,10 +301,17 @@
   -->
 
 </div>
-<div id="editor" style="text-align: center;">{{section.class_name}}</div>
+<div id="editor" style="text-align: center; margin: auto;" >{{section.class_name}}</div>
 <button id="cmd" class="button">generate PDF</button>
 
-
+<div class="popup popup-active" id="popup">
+  <form method="POST" action="">
+    {% csrf_token %}
+     {% load crispy_forms_tags %}
+     {{ activityform|crispy }}
+    <input type="submit" value="Save Here" class="saveButton">
+  </form>
+</div>
 
 
 

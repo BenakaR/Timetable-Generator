@@ -11,7 +11,9 @@
         <a href="{% url 'add-class' %}"><button class="searchButton">Add Section </button></a>
 
     </div>
-
+    {% if errors %}
+    alert({{errors}})
+    {% endif %}
 
 	<div class="table-responsive-lg">
         <table class="table ">

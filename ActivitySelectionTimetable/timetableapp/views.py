@@ -56,13 +56,12 @@ def registerPage(request):
         context = {'form':form}
         return render(request, 'timetableapp/register.html', context)
 
+@login_required(login_url='login')
 def home(request):
     course = CourseForm()
     professor = ProfessorForm()
-    #classroom = ClassroomForm()
     section = ClassForm()
-    sectioncourse = ClassCourseForm()
-    #sectionclassroom = SectionClassroomForm()
+    sectioncourse = ClassCourseForm(request.user)
     activity = ActivityForm()
     context = {
                 'course': course,'professor': professor,'section': section,
@@ -77,25 +76,28 @@ def home(request):
 def CourseView(request):
     course = CourseForm()
     context = {'course': course}
-
+    
     if request.method == 'POST':
         course = CourseForm(request.POST)
         if course.is_valid():
-            messages.success(request, 'Course has been added successfully.')
-            course.save()
+            # messages.success(request, 'Course has been added successfully.')
+            cors = course.save(commit = False)
+            cors.user = request.user
+            cors.save()
         else:
-            messages.success(request, 'Course already exists or you have added wrong attributes.')
-
-
+            messages.error(request, 'Course already exists or you have added wrong attributes.')
     return render(request, 'timetableapp/AddCourse.html', context)
+
+
 @login_required(login_url='login')
 def CourseTable(request):
-    course = Course.objects.all()
+    course = Course.objects.filter(user=request.user)
     context = {'course': course}
     return render(request, 'timetableapp/CourseTable.html', context)
+
 @login_required(login_url='login')
 def updateCourseView(request, pk):
-    form = Course.objects.get(course_id=pk)
+    form = Course.objects.get(user=request.user,course_id=pk)
     course = CourseForm(instance=form)
     context = {'course': course}
     if request.method == 'POST':
@@ -107,7 +109,7 @@ def updateCourseView(request, pk):
 
 @login_required(login_url='login')
 def deleteCourse(request, pk):
-    delete_course = Course.objects.get(course_id=pk)
+    delete_course = Course.objects.get(user=request.user,course_id=pk)
     context = {'course_delete': delete_course}
     if request.method == 'POST':
         delete_course.delete()
@@ -118,25 +120,31 @@ def deleteCourse(request, pk):
 @login_required(login_url='login')
 def ProfessorView(request):
     professor = ProfessorForm()
-    professor1 = Professor.objects.all()
+    professor1 = Professor.objects.filter(user=request.user)
 
     context = {'professor': professor, 'professor1': professor1}
     if request.method == 'POST':
         professor = ProfessorForm(request.POST)
         if professor.is_valid():
-            messages.success(request, 'Professor has been added successfully.')
-            professor.save()
+            # messages.success(request, 'Professor has been added successfully.')
+            prof = professor.save(commit = False)
+            prof.user = request.user
+            prof.save()
         else:
-            messages.success(request, 'Professor already exists or you have added wrong attributes.')
+            messages.error(request, 'Professor already exists or you have added wrong attributes.')
     return render(request, 'timetableapp/AddProfessor.html', context)
+
+
 @login_required(login_url='login')
 def ProfessorTable(request):
-    professor1 = Professor.objects.all()
+    professor1 = Professor.objects.filter(user=request.user)
     context = {'professor1': professor1}
     return render(request, 'timetableapp/ProfessorTable.html', context)
+
+
 @login_required(login_url='login')
 def updateProfessorView(request, pk):
-    professor = Professor.objects.get(professor_id=pk)
+    professor = Professor.objects.get(user=request.user,professor_id=pk)
     form = ProfessorForm(instance=professor)
     context = {'form': form}
     if request.method == 'POST':
@@ -148,7 +156,7 @@ def updateProfessorView(request, pk):
 
 @login_required(login_url='login')
 def deleteProfessor(request, pk):
-    deleteprofessor = Professor.objects.get(professor_id=pk)
+    deleteprofessor = Professor.objects.get(user=request.user,professor_id=pk)
     context = {'delete': deleteprofessor}
     if request.method == 'POST':
         deleteprofessor.delete()
@@ -157,70 +165,31 @@ def deleteProfessor(request, pk):
     return render(request, 'timetableapp/deleteProfessor.html', context)
 
 
-
-@login_required(login_url='login')
-def ClassroomView(request):
-    classroom = ClassroomForm()
-    classes = Classroom.objects.all()
-    context = {'classroom': classroom, 'classes': classes}
-    if request.method == 'POST':
-        classroom = ClassroomForm(request.POST)
-        if classroom.is_valid():
-            messages.success(request, 'Classroom has been added.')
-            classroom.save()
-        else:
-            messages.error(request, 'Do not enter the same class ID')
-    return render(request, 'timetableapp/AddClassroom.html', context)
-@login_required(login_url='login')
-def ClassroomTable(request):
-    classrooms = Classroom.objects.all()
-    context = {'classrooms': classrooms}
-    return render(request, 'timetableapp/ClassroomTable.html', context)
-@login_required(login_url='login')
-def updateClassroomView(request, pk):
-    classroom = Classroom.objects.get(classroom_id=pk)
-    form = ClassroomForm(instance=classroom)
-    context = {'form': form}
-    if request.method == 'POST':
-        form = ClassroomForm(request.POST, instance=classroom)
-        if form.is_valid():
-            form.save()
-            return redirect('/classroom_view')
-    return render(request, 'timetableapp/ViewSection.html', context)
-@login_required(login_url='login')
-def deleteClassroom(request, pk):
-    deleteClassroom = Classroom.objects.get(classroom_id=pk)
-    context = {'delete': deleteClassroom}
-    if request.method == 'POST':
-        deleteClassroom.delete()
-        return redirect('/classroom_view')
-
-    return render(request, 'timetableapp/deleteClassroom.html', context)
-
-
-
 @login_required(login_url='login')
 def ClassView(request):
     section = ClassForm()
-    sections = Class.objects.all()
+    sections = Class.objects.filter(user=request.user)
     context = {'section': section, 'sections': sections}
     if request.method == 'POST':
         section = ClassForm(request.POST)
         if section.is_valid():  
-            messages.success(request, 'Class has been added.')
-            section.save()
+            # messages.success(request, 'Class has been added.')
+            sec = section.save(commit = False)
+            sec.user = request.user
+            sec.save()
             return redirect('/add-classcourse')    # add 
         else:
             messages.error(request, 'Do not enter the same class ID')
     return render(request, 'timetableapp/AddClass.html', context)
+
 @login_required(login_url='login')
 def ClassCourseView(request):
-    sectioncourse = ClassCourseForm()
-    sectioncourses = ClassCourse.objects.all()
-    #section = Class.objects.get(class_id=id)
+    sectioncourse = ClassCourseForm(request.user)
+    sectioncourses = ClassCourse.objects.filter(user=request.user)
+
     context = {'sectioncourse': sectioncourse, 'sectioncourses': sectioncourses}
     if request.method == 'POST':
-        sectioncourse = ClassCourseForm(request.POST)
+        sectioncourse = ClassCourseForm(request.POST,request.user)
         if sectioncourse.is_valid():
             messages.success(request, "Course added for class.")
             sectioncourse.save()
@@ -228,23 +197,10 @@ def ClassCourseView(request):
             messages.error(request, 'Can not add duplicate course for class.')
     return render(request, 'timetableapp/AddClassCourse.html', context)
 
-@login_required(login_url='login')
-def SectionRoomView(request):
-    sectionroom = SectionClassroomForm()
-    sectionrooms = SectionClassroom.objects.all()
-    context = {'sectionroom': sectionroom, 'sectionrooms': sectionrooms}
-    if request.method == 'POST':
-        sectionroom == SectionClassroomForm(request.POST)
-        if sectionroom.is_valid():
-            messages.success(request, "Room added for the class")
-            sectionroom.save()
-        else:
-            messages.error(request, 'Can not add duplicate rooms for a class')
-    return render(request, 'timetableapp/AddSectionClassrooms.html', context)
 
 @login_required(login_url='login')
 def updateClassView(request, pk):
-    section = Class.objects.get(class_id=pk)
+    section = Class.objects.get(user=request.user,class_id=pk)
     form = ClassForm(instance=section)
     context = {'form': form}
     if request.method == 'POST':
@@ -257,12 +213,11 @@ def updateClassView(request, pk):
 
 @login_required(login_url='login')
 def deleteClass(request, pk):
-    deleteClass = Class.objects.get(class_id=pk)
+    deleteClass = Class.objects.get(user=request.user,class_id=pk)
     context = {'delete': deleteClass}
     if request.method == 'POST':
         deleteActivities(pk)
-        deleteCLassCourses(pk)
-        #deleteSectionClassrooms(pk)
+        deleteCLassCourses(request.user,pk)
         deleteClass.delete()
 
         return redirect('/class-view')
@@ -270,124 +225,69 @@ def deleteClass(request, pk):
     return render(request, 'timetableapp/deleteClass.html', context)
 
 
-def deleteCLassCourses(id):
-    ClassCourse.objects.filter(class_id=id).delete()
-
-def deleteSectionClassrooms(id):
-    SectionClassroom.objects.filter(class_id=id).delete()
-
-
+def deleteCLassCourses(usr,id):
+    ClassCourse.objects.filter(user=usr,class_id=id).delete()
 
 
 @login_required(login_url='login')
 def ClassTable(request):
-    sections = Class.objects.all()
+    sections = Class.objects.filter(user=request.user)
     context = {'sections': sections}
     return render(request, 'timetableapp/ClassTable.html', context)
 
 
-
-
-def WeekDayFormView(request):
-    weekdayform = WeekDaysForm()
-    context = {'form':weekdayform}
-    if request.method == 'POST':
-        weekdayform = WeekDaysForm(request.POST)
-        if weekdayform.is_valid():
-            weekdayform.save()
-            messages.success(request, 'Class has been added.')
-        else:
-            messages.error(request, 'Do not enter the same class ID')
-    return render(request, 'timetableapp/weekdays.html', context)
-
-
-
-class Room:
-    def __init__(self):
-        self.ID = None
-        self.TYPE = None
-
-    #def __init__(self, id, type):
-     #   self.ID = id
-      #  self.TYPE = type
-
-
-
-
-def AddSchedule(request):
-    schedule = ScheduleForm()
-    schedules = WeekSchedule.objects.all()
-    context = {'schedule': schedule, 'schedules': schedules}
-    if request.method == 'POST':
-        schedule = ScheduleForm(request.POST)
-        if schedule.is_valid():
-            messages.success(request, "Schedule Added.")
-            schedule.save()
-        else:
-            messages.error(request, 'Do not enter the same class ID')
-    return render(request, 'timetableapp/AddClass.html', context)
-
-
 @login_required(login_url='login')
 def TimeTable(request):
-    sections = Class.objects.all()
+    sections = Class.objects.filter(user=request.user)
     context = {'sections': sections}
     return render(request, 'timetableapp/TimeTable.html', context)
-
 
 
 @login_required(login_url='login')
 def GenerateTimeTable(request, id):
     try:
-        section = Class.objects.get(class_id=id)
-        sectioncourses = list(ClassCourse.objects.filter(class_id=id))
-        sectionrooms = list(SectionClassroom.objects.filter(class_id=id))
+        section = Class.objects.get(user=request.user,class_id=id)
+        sectioncourses = list(ClassCourse.objects.filter(user=request.user,class_id=id))
+    except Class.DoesNotExist:
+        messages.error(request, 'Class does not exist')
+    else:
         if len(sectioncourses) > 0:
-            if Activity.objects.filter(class_id=id).count() != 0:
-                #Activity.objects.filter(class_id=section.class_id).delete()
-                deleteActivities(id)
+            if Activity.objects.filter(user=request.user,activity_type='Replaceable',class_id=id).count() != 0:
+                print("delall")
+                deleteActivities(id,"Theory")
+                deleteActivities(id,"Lab")
             totalDays = len(section.week_day)
-            totalRooms = len(sectionrooms)
             sessionlist, breaktime = timeCalculate(id)
             lenSessList = len(sessionlist)-len(breaktime)
+            breaktime = [0] + breaktime
             workingHours = totalDays * len(sessionlist)
-                # getting class room data
-                # class_rooms = [Room() for i in range(totalRooms)]
-                # for i in range(len(sectionrooms)):
-                #     room = Classroom.objects.get(classroom_id=sectionrooms[i].classroom_id)
-                #     class_rooms[i].ID = room.classroom_id
-                #     class_rooms[i].TYPE = room.classroom_type
-                #     print(room)
-            # variable to save index of class room being used
-                #roomNum = random.randint(0, totalRooms - 1)
             lecDay = 0
             lecStartTime = 0
             DupNum = 0
             for k in range(0, len(sectioncourses)):
                 if DupNum > (workingHours + 5):
+                    print("toomuch")
                     break
                 try:
-                    course: Course = Course.objects.get(course_id=sectioncourses[k].course_id_id)
+                    course: Course = Course.objects.get(user=request.user,course_id=sectioncourses[k].course_id_id,course_type = 'Lab')
                 except Course.DoesNotExist:
-                    messages.error(request, 'Course not found')
-                    print("Hellooooo\nHelloooo6")
+                    pass#messages.error(request, 'Course not found')
                 else:
                     try:
                         professor = Professor.objects.get(professor_id=sectioncourses[k].professor_id_id)
                     except Professor.DoesNotExist:
                         messages.error(request, 'Professor not found')
-                        print("Hellooooo\nHelloooo5")
                     else:
-                        courseLecs = course.credit_hours
+                        courseCount = Activity.objects.filter(user=request.user,course=sectioncourses[k]).count()
+                        courseLecs = course.credit_hours - courseCount
                         lecDuration = course.contact_hours / course.credit_hours
                         j = 0
                         while j < courseLecs:
-                            print("/",end="")
                             lecFlag = True
                             if DupNum < workingHours + 5:
                                 if DupNum < 5:
                                     lecDay = random.randint(0, totalDays - 1)
-                                    lecStartTime = random.randint(0,lenSessList)
+                                    lecStartTime = random.choice(breaktime)
                                     # while lecStartTime in breaktime:
                                     #     lecStartTime = random.randint(0,lenSessList)
                                     if lecStartTime + lecDuration > lenSessList:
@@ -400,37 +300,27 @@ def GenerateTimeTable(request, id):
 
                                 if lecFlag:
                                     if lecStartTime < lenSessList:
-                                        # tot = 0
-                                        # while course.course_type != class_rooms[roomNum].TYPE or tot < totalRooms:
-                                        #     #print(roomNum)
-                                        #     roomNum = (roomNum + 1) % totalRooms
-                                        #     tot += 1
                                         activityFlag = True
                                         activityID = [section.week_day[lecDay]] * int(lecDuration)
                                         for i in range(int(lecDuration)):
-                                            print(".",end="")
-                                            activityID[i] += '-' + str(lecStartTime + i)
+                                            activityID[i] += '-' + str(lecStartTime + i) + '-' + str(section.class_id)
                                             # for activity in activities:
-                                            if Activity.objects.filter(activity_id=activityID[i],
+                                            if Activity.objects.filter(user=request.user,
+                                                                    day=section.week_day[lecDay],
+                                                                    start_time=lecStartTime + i,
                                                                     class_id=section.class_id).count() != 0 or \
-                                                    Activity.objects.filter(activity_id=activityID[i],
-                                                                            professor_id=professor.professor_id).count() != 0 :
-                                                    # Activity.objects.filter(activity_id=activityID[i],
-                                                    #                         classroom_id=class_rooms[
-                                                    #                             roomNum].ID).count() != 0:
+                                                    Activity.objects.filter(user=request.user,
+                                                                        day=section.week_day[lecDay],
+                                                                        start_time=lecStartTime + i,
+                                                                        professor_id=professor.professor_id).count() != 0 :
                                                 activityFlag = False
                                                 DupNum += 1
                                             # break
                                         if activityFlag:
-                                            print('Activity generated')
                                             for i in range(int(lecDuration)):
-                                                print(",",end="")
                                                 newActivity = Activity(activity_id=activityID[i],
                                                                     activity_type='Replaceable',
-                                                                    class_id=section.class_id,
-                                                                    # classroom_id=class_rooms[roomNum].ID,
-                                                                    course_id=course.course_id,
-                                                                    professor_id=professor.professor_id,
+                                                                    course=sectioncourses[k],
                                                                     day=section.week_day[lecDay],
                                                                     start_time=lecStartTime + i,
                                                                     end_time=lecStartTime + i + 1)
@@ -439,45 +329,122 @@ def GenerateTimeTable(request, id):
                                                 professor.save()
                                             DupNum = 0
                                             j += 1
-                                            print("yes")
 
                             else:
                                 #Activity.objects.filter(class_id=section.class_id).delete()
-                                deleteActivities(id)
+                                deleteActivities(request.user,id,'Lab')
                                 messages.error(request, 'Solution does not exist.')
-                                print("Hellooooo\nHelloooo4")
+                                DupNum +=1
+            DupNum = 0
+            lecDay = 0
+            lecStartTime = 0
+            for k in range(0, len(sectioncourses)):
+                if DupNum > (workingHours + 5):
+                    break
+                try:
+                    course: Course = Course.objects.get(user=request.user,course_id=sectioncourses[k].course_id_id,course_type = 'Theory')
+                except Course.DoesNotExist:
+                    pass#messages.error(request, 'Course not found')
+                else:
+                    try:
+                        professor = Professor.objects.get(user=request.user,professor_id=sectioncourses[k].professor_id_id)
+                    except Professor.DoesNotExist:
+                        messages.error(request, 'Professor not found')
+                    else:
+                        courseCount = Activity.objects.filter(user=request.user,course=sectioncourses[k]).count()
+                        courseLecs = course.credit_hours - courseCount
+                        lecDuration = course.contact_hours / course.credit_hours
+                        j = 0
+                        DupNum = 0
+                        lecDay = 0
+                        while j < courseLecs:
+                            lecFlag = True
+                            
+                            if DupNum < workingHours + 20:
+                                if DupNum < 20:
+                                    lecDay = random.randint(0, totalDays - 1)
+                                    lecStartTime = random.randint(0,lenSessList)
+                                    # while lecStartTime in breaktime:
+                                    #     lecStartTime = random.randint(0,lenSessList)
+                                    if lecStartTime + lecDuration > lenSessList:
+                                        lecFlag = False
+                                elif DupNum == 20:
+                                    lecDay = 0
+                                else:
+                                    lecStartTime += 1
+                                    if lecStartTime + lecDuration > lenSessList:
+                                        lecDay = (lecDay + 1) % totalDays
+                                        lecStartTime = 0
+
+                                if lecFlag:
+                                    if lecStartTime < lenSessList:
+                                        activityFlag = True
+                                        activityID = [section.week_day[lecDay]] * int(lecDuration)
+                                        for i in range(int(lecDuration)):
+                                            activityID[i] += '-' + str(lecStartTime + i) + '-' + str(section.class_id)
+                                            # for activity in activities:
+                                            if Activity.objects.filter(user=request.user,
+                                                                    day=section.week_day[lecDay],
+                                                                    start_time=lecStartTime + i,
+                                                                    class_id=section.class_id).count() != 0 or \
+                                                    Activity.objects.filter(user=request.user,
+                                                                        day=section.week_day[lecDay],
+                                                                        start_time=lecStartTime + i,
+                                                                        professor_id=professor.professor_id).count() != 0 :
+                                                activityFlag = False
+                                                DupNum += 1
+                                            # break
+                                        if activityFlag:
+                                            for i in range(int(lecDuration)):
+                                                newActivity = Activity(activity_id=activityID[i],
+                                                                    activity_type='Replaceable',
+                                                                    course=sectioncourses[k],
+                                                                    day=section.week_day[lecDay],
+                                                                    start_time=lecStartTime + i,
+                                                                    end_time=lecStartTime + i + 1)
+                                                newActivity.save()
+                                                professor.available_hours = professor.available_hours - 1
+                                                professor.save()
+                                            DupNum = 0
+                                            j += 1
+
+                            else:
+                                #Activity.objects.filter(class_id=section.class_id).delete()
+                                deleteActivities(request.user,id,'Theory')
+                                messages.error(request, 'Solution does not exist.')
                                 DupNum +=1
                                 break
+            
             messages.success(request, 'Timetable generated')
-            print("Hellooo!!!oo\nHell!!!oooo3")
             #return redirect('timetable/')
         else:
             messages.error(request, 'Courses does not exist.')
-            print("Hellooooo\nHelloooo1")
-    except Class.DoesNotExist:
-        messages.error(request, 'Class does not exist')
     
-    
-    sections = Class.objects.all()
+    sections = Class.objects.filter(user=request.user)
     context = {'sections': sections}
-    print("!!")
-    return render(request, 'timetableapp/ClassTable.html', context)
+    return redirect('class_view')
 
 
 
-def deleteActivities(id):
-    activities = list(Activity.objects.filter(class_id=id))
+def deleteActivities(usr,id,type=None):
+    print("del")
+    if type == None:
+        activities = list(Activity.objects.filter(user=usr,class_id=id,activity_type='Replaceable'))
+    else:
+        activities = list(Activity.objects.filter(user=usr,class_id=id,activity_type='Replaceable',course_type=type))
     for activity in activities:
-        print("?",end="")
-        course = Course.objects.get(course_id=activity.course_id)
+        #course = Course.objects.get(course_id=activity.course_id)
         professor = Professor.objects.get(professor_id=activity.professor_id)
         professor.available_hours += 1
         professor.save()
-    Activity.objects.filter(class_id=id).delete()
+    if type == None:
+        Activity.objects.filter(user=usr,class_id=id,activity_type='Replaceable').delete()
+    else:
+        Activity.objects.filter(user=usr,class_id=id,activity_type='Replaceable',course_type=type).delete()
 
 
-def timeCalculate(id):
-    section = Class.objects.get(class_id=id)
+def timeCalculate(usr,id):
+    section = Class.objects.get(user=usr,class_id=id)
     l = []
     st = datetime.combine(datetime.today(),section.start_time)
     end = datetime.combine(datetime.today(),section.end_time)
@@ -487,13 +454,13 @@ def timeCalculate(id):
     while st < end:
         s = str(st.time())
         if st.time()==section.break_start:
-            e = st + timedelta(minutes=section.break_time)
-            l.append( str(st.time()) + ' - ' + str(e.time()))
+            e = section.break_time
+            l.append( [str(st.time()) , str(e.time())])
             st = e
             ll.append(count)
         if st.time()==section.break_start_2:
-            e = st + timedelta(minutes=section.break_time_2)
-            l.append( str(st.time()) + ' - ' + str(e.time()))
+            e = section.break_time_2
+            l.append( [str(st.time()) , str(e.time())])
             st = e
             ll.append(count)
         st = st + timedelta(minutes=min)
@@ -507,22 +474,11 @@ def timeCalculate(id):
 @login_required(login_url='login')
 def TimeTableView(request, id):
     try:
-        section = Class.objects.get(class_id=id)
-        courses = Course.objects.all()
-        professors = Professor.objects.all()
-        activities = Activity.objects.filter(class_id=id)
-        #rooms = Classroom.objects.all()
-        # time = [0] * (section.end_time - section.start_time)
-        # print(time)
-        # time_slot = [''] * (section.end_time - section.start_time)
-        # print(time_slot)
-        # for x in range(0, len(time)):
-        #     time_slot[x] = str(section.start_time + x) + ':00 - ' + str(section.start_time + x + 1) + ':00'
-        #     time[x] = section.start_time + x
-        st = datetime.combine(datetime.today(),section.start_time)
-        
-        end = datetime.combine(datetime.today(),section.end_time)
-        l,ll = timeCalculate(id)
+        section = Class.objects.get(user=request.user,class_id=id)
+        courses = Course.objects.filter(user=request.user)
+        professors = Professor.objects.filter(user=request.user)
+        activities = Activity.objects.filter(user=request.user,class_id=id)
+        l,ll = timeCalculate(request.user,id)
         breakss=[]
         c=0
         for i in ll:
@@ -531,10 +487,26 @@ def TimeTableView(request, id):
         context_1 = {'section': section, 'courses': courses, 'professors':professors, 
                      'activities': activities, 'timings':l, 'timingss':range(len(l)-len(ll)), 'breaks':ll,
                      'breakss':breakss }
+
         return render(request, 'timetableapp/TimeTable.html', context_1)
     except Class.DoesNotExist:
         messages.error(request, 'Activity does not exist')
     
-        sections = Class.objects.all()
+        sections = Class.objects.filter(user=request.user)
         context_2 = {'sections': sections}
         return render(request, 'timetableapp/ClassTable.html', context_2)
+    
+@login_required(login_url='login')
+def AddActivity(request, pk):
+    activity = Activity.objects.get(user=request.user,activity_id=pk)
+    section = Class.objects.get(user=request.user,class_id = activity.class_id)
+    actform = ActivityFormUpdate(instance = activity)
+    context = {'actform': actform, 'section':section}
+    if request.method == 'POST':
+        actform = ActivityFormUpdate(request.POST,instance=activity)
+        if actform.is_valid():
+            actform.save()
+            return redirect('/timetable/'+ section.class_id)
+        else:
+            messages.error(request, 'Error editing activity')
+    return render(request, 'timetableapp/AddActivity.html', context)

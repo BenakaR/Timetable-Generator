@@ -4,20 +4,21 @@
      <div class="display">
         <div class="box">
             <div class="header">
-                Classroom
+                Activity
             </div>
+            <br><br>
             <div class="form">
                 <form method="POST" action="">
                     {% csrf_token %}
                     {% load crispy_forms_tags %}
-                    {{ classroom|crispy }}
-                    <input type="submit" value="Save Class" class="saveButton">
+                    {{ actform|crispy }}
+                    <input type="submit" value="Save Activity" class="saveButton">
                 </form>
             </div>
         </div>
 
             <img class="gif" alt="books" src="{% static 'media/21903-online-class-animation.gif' %}">
-            <div class="viewtable"><p>You can view your added classroom here.<a href="{% url 'classroom-view' %}">View Classrooms</a></p></div>
+            <div class="viewtable"><p>You can view timetable here.<a href="{% url 'timetable' section.class_id %}">View TimeTable</a></p></div>
 
     </div>
 
