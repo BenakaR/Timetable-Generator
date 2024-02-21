@@ -38,8 +38,9 @@ When first we started the project we chosed the Greedy algorithm to perform for 
 ## Features
 1. User-Friendly GUI which helps you upload data on the go.
 2. You can generate timetable for one class at a time.
-3. You can download the PDF file of the timetable.
-4. A responsive app which can be used in any device.
+3. But it keeps track of all classes.
+4. You can download the PDF file of the timetable.
+5. A responsive app which can be used in any device.
 
 
 ## Desktop View
