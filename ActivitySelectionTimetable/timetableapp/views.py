@@ -189,7 +189,7 @@ def ClassCourseView(request):
 
     context = {'sectioncourse': sectioncourse, 'sectioncourses': sectioncourses}
     if request.method == 'POST':
-        sectioncourse = ClassCourseForm(request.POST,request.user)
+        sectioncourse = ClassCourseForm(request.user,request.POST)
         if sectioncourse.is_valid():
             messages.success(request, "Course added for class.")
             sectioncourse.save()
@@ -253,11 +253,10 @@ def GenerateTimeTable(request, id):
     else:
         if len(sectioncourses) > 0:
             if Activity.objects.filter(user=request.user,activity_type='Replaceable',class_id=id).count() != 0:
-                print("delall")
-                deleteActivities(id,"Theory")
-                deleteActivities(id,"Lab")
+                deleteActivities(request.user,id,"Theory")
+                deleteActivities(request.user,id,"Lab")
             totalDays = len(section.week_day)
-            sessionlist, breaktime = timeCalculate(id)
+            sessionlist, breaktime = timeCalculate(request.user,id)
             lenSessList = len(sessionlist)-len(breaktime)
             breaktime = [0] + breaktime
             workingHours = totalDays * len(sessionlist)
@@ -266,7 +265,6 @@ def GenerateTimeTable(request, id):
             DupNum = 0
             for k in range(0, len(sectioncourses)):
                 if DupNum > (workingHours + 5):
-                    print("toomuch")
                     break
                 try:
                     course: Course = Course.objects.get(user=request.user,course_id=sectioncourses[k].course_id_id,course_type = 'Lab')
@@ -427,7 +425,6 @@ def GenerateTimeTable(request, id):
 
 
 def deleteActivities(usr,id,type=None):
-    print("del")
     if type == None:
         activities = list(Activity.objects.filter(user=usr,class_id=id,activity_type='Replaceable'))
     else:
@@ -452,19 +449,21 @@ def timeCalculate(usr,id):
     count=0
     ll=[]
     while st < end:
-        s = str(st.time())
+        s = str(st.time())[0:5]
         if st.time()==section.break_start:
-            e = section.break_time
-            l.append( [str(st.time()) , str(e.time())])
+            e = datetime.combine(datetime.today(),section.break_time)
+            l.append( [str(st.time())[0:5] , str(e.time())[0:5]])
             st = e
+            s = str(st.time())[0:5]
             ll.append(count)
         if st.time()==section.break_start_2:
-            e = section.break_time_2
-            l.append( [str(st.time()) , str(e.time())])
+            e = datetime.combine(datetime.today(),section.break_time_2)
+            l.append( [str(st.time())[0:5] , str(e.time())[0:5]])
             st = e
+            s = str(st.time())[0:5]
             ll.append(count)
         st = st + timedelta(minutes=min)
-        s = s + ' - ' + str(st.time())
+        s = s + ' - ' + str(st.time())[0:5]
         l.append(s)
         count += 1
     return l,ll
@@ -484,10 +483,22 @@ def TimeTableView(request, id):
         for i in ll:
             breakss.append(l[i+c])
             c += 1
+        activityform = ActivityForm()
         context_1 = {'section': section, 'courses': courses, 'professors':professors, 
                      'activities': activities, 'timings':l, 'timingss':range(len(l)-len(ll)), 'breaks':ll,
-                     'breakss':breakss }
-
+                     'breakss':breakss , 'activityform':activityform}
+        if request.method == 'POST':
+            actform = ActivityForm(request.POST)
+            if actform.is_valid():
+                act = actform.save(commit=False)
+                act.end_time = act.start_time
+                act.start_time = act.start_time - 1
+                act.day = act.day[2:-2]
+                act.activity_id = act.day +'-'+ str(act.start_time) +'-'+ act.course.class_id.class_id
+                Activity.objects.filter(user=request.user,activity_id=act.activity_id).delete()
+                act.save()
+            else:
+                messages.error(request, 'Error editing activity')
         return render(request, 'timetableapp/TimeTable.html', context_1)
     except Class.DoesNotExist:
         messages.error(request, 'Activity does not exist')

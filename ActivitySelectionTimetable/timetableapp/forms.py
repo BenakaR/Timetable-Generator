@@ -2,7 +2,6 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
 from .models import *
-from django import forms
 
 
 class CreateUserForm(UserCreationForm):
@@ -66,7 +65,7 @@ class ClassForm(forms.ModelForm):
 class ClassCourseForm(forms.ModelForm):
     class Meta:
         model = ClassCourse
-        fields = ['class_id','professor_id','course_id']
+        fields = ['user','class_id','course_id','professor_id']
         exclude = ['user']
 
     def __init__(self, user, *args,  **kwargs):
@@ -79,8 +78,22 @@ class ActivityForm(forms.ModelForm):
     class Meta:
         model = Activity
         fields = [ 'activity_type', 'course', 'day',
-                  'start_time', 'end_time']
-        
+                  'start_time']
+        labels = {
+            'start_time':'Session Number'
+        }
+    WEEK_DAY = (
+    ('Monday', 'Monday'),
+    ('Tuesday', 'Tuesday'),
+    ('Wednesday', 'Wednesday'),
+    ('Thursday', 'Thursday'),
+    ('Friday', 'Friday'),
+    ('Saturday', 'Saturday')
+    )
+    day = forms.MultipleChoiceField(choices=WEEK_DAY)
+    def __init__(self, *args,  **kwargs):
+        super(ActivityForm, self).__init__(*args, **kwargs)
+        self.fields['start_time'].initial = 1
 
 class ActivityFormUpdate(forms.ModelForm):
     class Meta:

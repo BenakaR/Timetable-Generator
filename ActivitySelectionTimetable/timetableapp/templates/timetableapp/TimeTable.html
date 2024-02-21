@@ -27,14 +27,35 @@
         * {
         box-sizing: border-box;
         }
-
+        .my-gradient {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #8eeec0, #8edcee);
+        -webkit-transition: 0.2s ease box-shadow, 0.2s ease transform;
+        transition: 0.2s ease box-shadow, 0.2s ease transform;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.3vw;
+        }
         .timetable {
         display: grid;
         grid-template-areas: ". week" "time content";
         grid-template-columns: 120px;
         grid-template-rows: 60px;
+        
         width: 100vw;
         height: 100vh;
+        }
+        .timetable .accent-my-gradient {
+        display: -webkit-box;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgb(220, 223, 255), #f4dcff);
+        -webkit-transition: 0.2s ease box-shadow, 0.2s ease transform;
+        transition: 0.2s ease box-shadow, 0.2s ease transform;
         }
         .timetable .accent-pink-gradient {
         display: -webkit-box;
@@ -105,7 +126,7 @@
         display: grid;
         grid-template-columns: repeat(9, auto);
         text-transform: uppercase;
-        font-size: 12px;
+        font-size: 1vw;
         }
         .timetable .time-interval > div {
         display: -webkit-box;
@@ -121,12 +142,21 @@
         .timetable .break {
           background-color: #dddddd;
         }
+        .timetable .break2 {
+          display: -webkit-box;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #e2e1e2, rgb(208, 208, 208));
+        -webkit-transition: 0.2s ease box-shadow, 0.2s ease transform;
+        transition: 0.2s ease box-shadow, 0.2s ease transform;
+        }
         .timetable .week-names {
           background-color: #dddddd;
         grid-area: time;
         display: grid;
         grid-template-rows: auto;
-        font-size: 14px;
+        font-size: 1vw;
         }
         .timetable .week-names > div {
         display: -webkit-box;
@@ -142,28 +172,30 @@
         .timetable .content {
         grid-area: content;
         display: grid;
-        
         grid-template-rows: auto;
         grid-template-columns: repeat(9, auto);
+        font-size: 1.1vw;
         }
         .timetable .content > div {
-        box-shadow: inset 1px 0 0 #eceff1, inset 0 1px 0 0 #eceff1;
-        margin: auto;
-        height: min-content;
-        
+        box-shadow: inset 3px 0 0 #eceff1, inset 0 2px 0 0 #eceff1;
+        display: -webkit-box;
+        display: flex;
+        -webkit-box-align: center;
+                align-items: center;
+        -webkit-box-pack: center;
+                justify-content: center;
+        width: 100%;
+        height: 100%;
         }
         .act{
           text-align:center; 
-          margin:auto; 
-          background-color:rgb(255, 241, 244); 
-          padding:auto;
           cursor:pointer;
         }
         .popup{
-          z-index: 40;
+          z-index: 10;
           position: fixed;
           background-color: #8eeec0;
-          width: 50%;
+          width: 40%;
           height: 70%;
           margin: auto;
         }
@@ -176,7 +208,7 @@
 
 <body>
 <div class="timetable" id="pdftimetable">
-    <div class="week-names">
+    <div class="week-names accent-cyan-gradient">
       {% for day in section.week_day %}
         <div>{{day}}</div>
       {% endfor %}
@@ -191,11 +223,11 @@
       <div class="weekend">sunday</div>
       -->
     </div>
-    <div class="time-interval">
+    <div class="time-interval accent-cyan-gradient">
       {% for x in timings %}
 				
         {% if x in breakss %}
-        <div class="break">{{x.0}} <br> {{x.1}}</div>
+        <div>{{x.0}} <br> {{x.1}}</div>
         {% else %}
         <div>{{x}}</div>
         {% endif %}
@@ -208,16 +240,16 @@
       <div>18:00 - 20:00</div>
       -->
     </div>
-    <div class="content">
+    <div class="content accent-my-gradient">
       {% for day in section.week_day %}
         {% for x in timingss %}
           {% if x in breaks %}
-          <div >
-                <p style="text-align:center; margin:auto"> |  </p>
+           <div class="break2">
+                <p>  </p>
           </div>
           {% endif %}
 
-          <div>
+          <div class="">
 
             {% for activity in activities %}
               {% for course in courses %}
@@ -229,7 +261,7 @@
                     <p class="act" onclick="location.href='{% url 'add-activity' activity.activity_id %}'">
                     {{course}}
                     <br>
-                      {{activity.course.course_id.course_id}}
+                      {{activity.course.professor_id.professor_id}}
                     </p>
                     {% endif %}
                   {% endif %}
@@ -242,67 +274,16 @@
         {% endfor %}
 
       {% endfor %}
-      <!--
-      <div>
-        <div class="accent-orange-gradient"></div>
-      </div>
-      <div></div>
-      <div></div>
-      <div></div>
-          <div>
-        <div class="accent-green-gradient"></div>
-      </div>
-      <div class="weekend"></div>
-      <div class="weekend"></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div>
-        <div class="accent-cyan-gradient"></div>
-      </div>
-      <div></div>
-      <div class="weekend"></div>
-      <div class="weekend"></div>
-      <div>
-        <div class="accent-pink-gradient"></div>
-      </div>
-      <div></div>
-      <div>
-        <div class="accent-purple-gradient"></div>
-      </div>
-      <div></div>
-      <div></div>
-      <div class="weekend"></div>
-      <div class="weekend"></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div class="weekend"></div>
-      <div class="weekend"></div>
-      <div>
-        <div class="accent-purple-gradient"></div>
-      </div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div class="weekend"></div>
-      <div class="weekend"></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div class="weekend"></div>
-      <div class="weekend"></div>
     </div>
-  -->
 
+<div id="editor" class="my-gradient" >{{section.class_name}}</div>
+<div style="display: flex; width: fit-content; height: min-content;">
+<button id="cmd" class="button" >generate PDF</button>
+<button class="button" onclick="location.href = '{% url 'class_view' %}' ">Back to Class List</button>
+<button class="button" onclick="formss()">Add Session</button>
 </div>
-<div id="editor" style="text-align: center; margin: auto;" >{{section.class_name}}</div>
-<button id="cmd" class="button">generate PDF</button>
+
+
 
 <div class="popup popup-active" id="popup">
   <form method="POST" action="">
@@ -311,6 +292,7 @@
      {{ activityform|crispy }}
     <input type="submit" value="Save Here" class="saveButton">
   </form>
+</div>
 </div>
 
 
@@ -333,6 +315,9 @@
             }
         });
     });
+    function formss() {
+      document.getElementById('popup').classList.toggle('popup-active');
+    }
 </script>
 </body>
 </html>
