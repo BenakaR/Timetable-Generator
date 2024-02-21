@@ -1,7 +1,6 @@
 
 from django.urls import path
 from . import views
-import ActivitySelectionTimetable.settings
 
 urlpatterns = [
 
@@ -22,8 +21,8 @@ urlpatterns = [
     path('delete-professor/<str:pk>/', views.deleteProfessor, name='delete-professor'),
     path('class-view/', views.ClassTable, name='class_view'),
     path('delete-class/<str:pk>/', views.deleteClass, name='delete-class'),
-#    path('timetable/', views.TimeTable, name='timetable'),
     path('generate-timetable/<str:id>/', views.GenerateTimeTable, name='generate-timetable'),
     path('timetable/<str:id>/', views.TimeTableView, name='timetable'),
     path('activity/<str:pk>/', views.AddActivity, name='add-activity')
+############    path('timetable/', views.TimeTable, name='timetable'), #############
 ]
