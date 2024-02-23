@@ -8,7 +8,7 @@
     <div class="search">
         <input type="text" class="searchbox" placeholder="Search...">
         <input type="submit" value="Search" class="searchButton">
-        <a href="{% url 'add-classroom' %}"><button class="searchButton">Add Classroom </button></a>
+        <a href="{% url 'add-classcourse' %}"><button class="searchButton">Assign Course </button></a>
 
     </div>
 
@@ -18,20 +18,20 @@
             <thead class="thead-dark">
 			<tr>
                 <div class="header__item filter__link" >
-                   <th scope="col" class="text-center">Room ID</th>
+                   <th scope="col" class="text-center">Class</th>
 
                 </div>
                 <div class="header__item filter__link">
-                  <th class="text-center" scope="col">Room Name</th>
+                  <th class="text-center" scope="col">Course</th>
 
                 </div>
                 <div class="header__item filter__link">
-                   <th class="text-center" scope="col">Room Type</th>
+                   <th class="text-center" scope="col">Professor</th>
 
                 </div>
 
                 <div class="header__item filter__link">
-                    <th class="text-center" scope="col"> Update</th>
+                    <th class="text-center" scope="col">Update</th>
 
                 </div>
                 <div class="header__item filter__link">
@@ -43,21 +43,21 @@
 			
             
 			
-                {% for classroom in classrooms %}
+                {% for assign in AssignList %}
 				
 				<tr>
                 
 					
-                        <th scope="row" class="table-light text-center">{{ classroom.classroom_id }}</th>
+                        <th scope="row" class="table-light text-center">{{ assign.class_id }}</th>
                     
 					
-						<th scope="row" class="table-dark text-center"  >{{ classroom.classroom_name }}</th>
+						<th scope="row" class="table-dark text-center"  >{{ assign.course_id }}</th>
                        
-						<th scope="row" class="table-light text-center"> {{ classroom.classroom_type}}</th>
+						<th scope="row" class="table-light text-center"> {{ assign.professor_id}}</th>
                    
-                        <th scope="row" class="table-dark text-center"> <a href="{% url 'update-classroom' classroom.classroom_id %}" class="btn btn-sm btn-info">Update</a></th>
+                        <th scope="row" class="table-dark text-center"> <a href="{% url 'update-classcourse' assign.id %}" class="btn btn-sm btn-info">Update</a></th>
                    
-                        <th scope="row" class="table-light text-center"> <a href="{% url 'delete-classroom' classroom.classroom_id %}" class="btn btn-sm btn-danger" >Remove</a></th>
+                        <th scope="row" class="table-light text-center"> <a href="{% url 'delete-classcourse' assign.id %}" class="btn btn-sm btn-danger" >Remove</a></th>
                 
 					</tr>
 				

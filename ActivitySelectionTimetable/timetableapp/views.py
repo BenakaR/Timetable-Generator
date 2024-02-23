@@ -9,7 +9,6 @@ from .models import *
 from django.contrib.auth.decorators import login_required
 from datetime import timedelta,datetime
 
-from .models import Course
 
 
 def loginPage(request):
@@ -115,6 +114,7 @@ def deleteCourse(request, pk):
 
     return render(request, 'timetableapp/delete.html', context)
 
+
 @login_required(login_url='login')
 def ProfessorView(request):
     professor = ProfessorForm()
@@ -132,13 +132,11 @@ def ProfessorView(request):
             messages.error(request, 'Professor already exists or you have added wrong attributes.')
     return render(request, 'timetableapp/AddProfessor.html', context)
 
-
 @login_required(login_url='login')
 def ProfessorTable(request):
     professor1 = Professor.objects.filter(user=request.user)
     context = {'professor1': professor1}
     return render(request, 'timetableapp/ProfessorTable.html', context)
-
 
 @login_required(login_url='login')
 def updateProfessorView(request, pk):
@@ -175,26 +173,15 @@ def ClassView(request):
             sec = section.save(commit = False)
             sec.user = request.user
             sec.save()
-            return redirect('/add-classcourse')    # add 
         else:
             messages.error(request, 'Do not enter the same class ID')
     return render(request, 'timetableapp/AddClass.html', context)
 
 @login_required(login_url='login')
-def ClassCourseView(request):
-    sectioncourse = ClassCourseForm(request.user)
-    sectioncourses = ClassCourse.objects.filter(user=request.user)
-
-    context = {'sectioncourse': sectioncourse, 'sectioncourses': sectioncourses}
-    if request.method == 'POST':
-        sectioncourse = ClassCourseForm(request.user,request.POST)
-        if sectioncourse.is_valid():
-            messages.success(request, "Course added for class.")
-            sectioncourse.save()
-        else:
-            messages.error(request, 'Can not add duplicate course for class.')
-    return render(request, 'timetableapp/AddClassCourse.html', context)
-
+def ClassTable(request):
+    sections = Class.objects.filter(user=request.user)
+    context = {'sections': sections}
+    return render(request, 'timetableapp/ClassTable.html', context)
 
 @login_required(login_url='login')
 def updateClassView(request, pk):
@@ -205,9 +192,7 @@ def updateClassView(request, pk):
         form = ClassForm(request.POST, instance=section)
         if form.is_valid():
             form.save()
-            return redirect('/add-classcourse')
     return render(request, 'timetableapp/ViewClass.html', context)
-
 
 @login_required(login_url='login')
 def deleteClass(request, pk):
@@ -215,30 +200,52 @@ def deleteClass(request, pk):
     context = {'delete': deleteClass}
     if request.method == 'POST':
         deleteActivities(pk)
-        deleteCLassCourses(request.user,pk)
+        ClassCourse.objects.filter(user=request.user,class_id=id).delete()
         deleteClass.delete()
-
         return redirect('class-view')
-
     return render(request, 'timetableapp/deleteClass.html', context)
 
 
-def deleteCLassCourses(usr,id):
-    ClassCourse.objects.filter(user=usr,class_id=id).delete()
+@login_required(login_url='login')
+def ClassCourseView(request):
+    sectioncourse = ClassCourseForm(request.user)
+    sectioncourses = ClassCourse.objects.filter(user=request.user)
+    context = {'sectioncourse': sectioncourse, 'sectioncourses': sectioncourses}
+    if request.method == 'POST':
+        sectioncourse = ClassCourseForm(request.user,request.POST)
+        if sectioncourse.is_valid():
+            messages.success(request, "Course added for class.")
+            sectioncourse.save()
+        else:
+            messages.error(request, 'Can not add duplicate course for class.')
+    return render(request, 'timetableapp/AddClassCourse.html', context)
 
+def ClassCourseTable(request):
+    AssignList= ClassCourse.objects.filter(user=request.user)
+    context = {'AssignList': AssignList}
+    return render(request, 'timetableapp/ClassCourseTable.html', context)
 
 @login_required(login_url='login')
-def ClassTable(request):
-    sections = Class.objects.filter(user=request.user)
-    context = {'sections': sections}
-    return render(request, 'timetableapp/ClassTable.html', context)
-
+def updateClassCourse(request, pk):
+    assign = ClassCourse.objects.get(user=request.user,id=pk)
+    sectioncourse = ClassCourseForm(request.user,instance=assign)
+    context = {'sectioncourse': sectioncourse}
+    if request.method == 'POST':
+        sectioncourse = ClassCourseForm(request.user,request.POST, instance=assign)
+        if sectioncourse.is_valid():
+            sectioncourse.save()
+            return redirect('/classcourse')
+    return render(request, 'timetableapp/AddClassCourse.html', context)
 
 @login_required(login_url='login')
-def TimeTable(request):
-    sections = Class.objects.filter(user=request.user)
-    context = {'sections': sections}
-    return render(request, 'timetableapp/TimeTable.html', context)
+def deleteClassCourse(request, pk):
+    deleteAssign = ClassCourse.objects.get(user=request.user,id=pk)
+    context = {'delete': deleteAssign}
+    if request.method == 'POST':
+        ClassCourse.objects.filter(user=request.user,id=pk).delete()
+        deleteAssign.delete()
+        return redirect('view-classcourse')
+    return render(request, 'timetableapp/deleteClassCourse.html', context)
 
 
 @login_required(login_url='login')

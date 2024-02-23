@@ -60,7 +60,7 @@ class ClassCourse(models.Model):
     class Meta:
         unique_together = ('user','class_id', 'course_id')
     class_id = models.ForeignKey(Class, on_delete=models.CASCADE)
-    professor_id = models.ForeignKey(Professor, on_delete=models.CASCADE)
+    professor_id = models.ForeignKey(Professor, on_delete=models.CASCADE, null=True, blank=True)
     course_id = models.ForeignKey(Course, on_delete=models.CASCADE)
     
     def __str__(self) :
