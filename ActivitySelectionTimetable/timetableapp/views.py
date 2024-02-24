@@ -199,10 +199,10 @@ def deleteClass(request, pk):
     deleteClass = Class.objects.get(user=request.user,class_id=pk)
     context = {'delete': deleteClass}
     if request.method == 'POST':
-        deleteActivities(pk)
+        deleteActivities(request.user,pk)
         ClassCourse.objects.filter(user=request.user,class_id=id).delete()
         deleteClass.delete()
-        return redirect('class-view')
+        return redirect('class_view')
     return render(request, 'timetableapp/deleteClass.html', context)
 
 
