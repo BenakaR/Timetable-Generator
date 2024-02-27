@@ -352,13 +352,16 @@ def GenerateTimeTable(request, id):
             break
 
         try:
-            course: Course = Course.objects.get(user=currentUser,course_id=sectioncourses[k].course_id_id,course_type = 'Theory')
+            course: Course = Course.objects.get(user=currentUser,
+                                                course_id=sectioncourses[k].course_id_id,
+                                                course_type = 'Theory')
         except Course.DoesNotExist:
             messages.error(request, 'Course not found')
             continue
 
         try:
-            professor = Professor.objects.get(user=currentUser,professor_id=sectioncourses[k].professor_id_id)
+            professor = Professor.objects.get(user=currentUser,
+                                              professor_id=sectioncourses[k].professor_id_id)
         except Professor.DoesNotExist:
             messages.error(request, 'Professor not found')
             continue
