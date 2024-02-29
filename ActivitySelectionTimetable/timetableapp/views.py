@@ -9,7 +9,7 @@ from .models import *
 from django.contrib.auth.decorators import login_required
 from datetime import timedelta,datetime
 
-
+errors = {}
 
 def loginPage(request):
     context = {}
@@ -26,8 +26,7 @@ def loginPage(request):
                 return redirect('selection')
             else:
                 messages.info(request, 'Username or Password is Incorrect')
-                return render(request, 'timetableapp/login.html', context)
-
+                context['message'] = 'Username or Password is Incorrect.'
         
         return render(request, 'timetableapp/login.html', context)
 
@@ -48,6 +47,8 @@ def registerPage(request):
                 form.save()
                 user = form.cleaned_data.get('username')
                 messages.success(request,'Account created successfully for ' + user)
+                context['success'] = 'Account created successfully for ' + user
+
                 return redirect('login')
 
         context = {'form':form}
@@ -78,11 +79,13 @@ def CourseView(request):
         course = CourseForm(request.POST)
         if course.is_valid():
             # messages.success(request, 'Course has been added successfully.')
+            context['success'] = 'Course has been added successfully.'
             cors = course.save(commit = False)
             cors.user = request.user
             cors.save()
         else:
-            messages.error(request, 'Course already exists or you have added wrong attributes.')
+            # messages.error(request, 'Course already exists or you have added wrong attributes.')
+            context['message'] = 'Course already exists or you have added wrong attributes.'
     return render(request, 'timetableapp/AddCourse.html', context)
 
 
@@ -125,11 +128,13 @@ def ProfessorView(request):
         professor = ProfessorForm(request.POST)
         if professor.is_valid():
             # messages.success(request, 'Professor has been added successfully.')
+            context['success'] = 'Professor has been added successfully.'
             prof = professor.save(commit = False)
             prof.user = request.user
             prof.save()
         else:
-            messages.error(request, 'Professor already exists or you have added wrong attributes.')
+            # messages.error(request, 'Professor already exists or you have added wrong attributes.')
+            context['message'] = 'Professor already exists or you have added wrong attributes.'
     return render(request, 'timetableapp/AddProfessor.html', context)
 
 @login_required(login_url='login')
@@ -170,17 +175,22 @@ def ClassView(request):
         section = ClassForm(request.POST)
         if section.is_valid():  
             # messages.success(request, 'Class has been added.')
+            context['success'] = 'Class has been added.'
             sec = section.save(commit = False)
             sec.user = request.user
             sec.save()
         else:
-            messages.error(request, 'Do not enter the same class ID')
+            # messages.error(request, 'Do not enter the same class ID')
+            context['message'] = 'Do not enter the same class ID'
     return render(request, 'timetableapp/AddClass.html', context)
 
 @login_required(login_url='login')
 def ClassTable(request):
+    global errors
     sections = Class.objects.filter(user=request.user)
     context = {'sections': sections}
+    context.update(errors)
+    errors = {}
     return render(request, 'timetableapp/ClassTable.html', context)
 
 @login_required(login_url='login')
@@ -213,11 +223,14 @@ def ClassCourseView(request):
     context = {'sectioncourse': sectioncourse, 'sectioncourses': sectioncourses}
     if request.method == 'POST':
         sectioncourse = ClassCourseForm(request.user,request.POST)
-        if sectioncourse.is_valid():
-            messages.success(request, "Course added for class.")
+        if sectioncourse.is_valid() and ClassCourse.objects.filter(user=request.user,class_id=sectioncourse.data.get('class_id'),course_id=sectioncourse.data.get('course_id')).count == 0:
+
+            # messages.success(request, "Course added for class.")
+            context['success'] = 'Course added for class.'
             sectioncourse.save()
         else:
-            messages.error(request, 'Can not add duplicate course for class.')
+            # messages.error(request, 'Can not add duplicate course for class.')
+            context['message'] = 'Can not add duplicate course for class. Check for existing records.'
     return render(request, 'timetableapp/AddClassCourse.html', context)
 
 def ClassCourseTable(request):
@@ -299,6 +312,7 @@ def GenerateTimeTable(request, id):
             if DupNum > workingHours + 5:
                 deleteActivities(currentUser,id,'Lab')
                 messages.error(request, 'Solution does not exist.')
+                errors['message'] = 'Solution does not exist.'
                 DupNum +=1
                 break
 
@@ -378,6 +392,7 @@ def GenerateTimeTable(request, id):
             if DupNum > workingHours + 20:
                 deleteActivities(currentUser,id,'Theory')
                 messages.error(request, 'Solution does not exist.')
+                errors['message'] = 'Solution does not exist.'
                 DupNum +=1
                 break
 
@@ -426,7 +441,7 @@ def GenerateTimeTable(request, id):
                     DupNum = 0
                     j += 1
 
-    messages.success(request, 'Timetable generated')
+    # messages.success(request, 'Timetable generated')
     return redirect('class_view')
 
 def deleteActivities(usr,id,type=None):
