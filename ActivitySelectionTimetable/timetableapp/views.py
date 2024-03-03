@@ -41,6 +41,7 @@ def registerPage(request):
         return redirect('selection')
     else:
         form = CreateUserForm()
+        context = {'form':form}
         if request.method == 'POST':
             form = CreateUserForm(request.POST)
             if form.is_valid():
@@ -49,9 +50,7 @@ def registerPage(request):
                 messages.success(request,'Account created successfully for ' + user)
                 context['success'] = 'Account created successfully for ' + user
 
-                return redirect('login')
-
-        context = {'form':form}
+                return redirect('login')        
         return render(request, 'timetableapp/register.html', context)
 
 @login_required(login_url='login')
@@ -75,12 +74,13 @@ def CourseView(request):
     course = CourseForm()
     context = {'course': course}
     
-    if request.method == 'POST':
+    if request.method == 'POST' :
         course = CourseForm(request.POST)
-        if course.is_valid():
+        cors = course.save(commit = False)
+        if course.is_valid() and not Course.objects.filter(user=request.user,course_id=cors.course_id):
             # messages.success(request, 'Course has been added successfully.')
             context['success'] = 'Course has been added successfully.'
-            cors = course.save(commit = False)
+            
             cors.user = request.user
             cors.save()
         else:
@@ -102,9 +102,12 @@ def updateCourseView(request, pk):
     context = {'course': course}
     if request.method == 'POST':
         course = CourseForm(request.POST, instance=form)
-        if course.is_valid():
-            course.save()
+        cors = course.save(commit = False)
+        if course.is_valid() and not Course.objects.filter(user=request.user,course_id=cors.course_id):
+            cors.save()
             return redirect('/course_view')
+        else:
+            context['message']="Either Course ID already exists, or other details are invalid"
     return render(request, 'timetableapp/AddCourse.html', context)
 
 @login_required(login_url='login')
@@ -223,14 +226,15 @@ def ClassCourseView(request):
     context = {'sectioncourse': sectioncourse, 'sectioncourses': sectioncourses}
     if request.method == 'POST':
         sectioncourse = ClassCourseForm(request.user,request.POST)
-        if sectioncourse.is_valid() and ClassCourse.objects.filter(user=request.user,class_id=sectioncourse.data.get('class_id'),course_id=sectioncourse.data.get('course_id')).count == 0:
-
-            # messages.success(request, "Course added for class.")
-            context['success'] = 'Course added for class.'
-            sectioncourse.save()
-        else:
-            # messages.error(request, 'Can not add duplicate course for class.')
-            context['message'] = 'Can not add duplicate course for class. Check for existing records.'
+        if sectioncourse.is_valid():
+            coursesave = sectioncourse.save(commit=False)
+            if ClassCourse.objects.filter(user=request.user,class_id=coursesave.class_id,course_id=coursesave.course_id):
+                # messages.error(request, 'Can not add duplicate course for class.')
+                context['message'] = 'Can not add duplicate course for class. Check for existing records.'
+            else:
+                # messages.success(request, "Course added for class.")
+                context['success'] = 'Course added for class.'
+                coursesave.save()
     return render(request, 'timetableapp/AddClassCourse.html', context)
 
 def ClassCourseTable(request):
@@ -266,7 +270,9 @@ def GenerateTimeTable(request, id):
     currentUser = request.user
     try:
         section = Class.objects.get(user=currentUser,class_id=id)
-        sectioncourses = list(ClassCourse.objects.filter(user=currentUser,class_id=id))
+        sectioncourses = list(ClassCourse.objects.filter(user=currentUser,class_id=section))
+        print(sectioncourses)
+        print(section)
     except Class.DoesNotExist:
         messages.error(request, 'Class does not exist')
         return redirect('class_view')
@@ -292,13 +298,13 @@ def GenerateTimeTable(request, id):
 
         try:
             course: Course = Course.objects.get(user=currentUser,course_type = 'Lab',
-                                                course_id=sectioncourses[k].course_id_id)
+                                                course_id=sectioncourses[k].course_id.course_id)
         except Course.DoesNotExist:
-            messages.error(request, 'Course not found')
+            messages.error(request, 'Lab Course not found')
             continue
 
         try:
-            professor = Professor.objects.get(professor_id=sectioncourses[k].professor_id_id)
+            professor = Professor.objects.get(professor_id=sectioncourses[k].professor_id.professor_id)
         except Professor.DoesNotExist:
             messages.error(request, 'Professor not found')
             continue
@@ -367,7 +373,7 @@ def GenerateTimeTable(request, id):
 
         try:
             course: Course = Course.objects.get(user=currentUser,
-                                                course_id=sectioncourses[k].course_id_id,
+                                                course_id=sectioncourses[k].course_id.course_id,
                                                 course_type = 'Theory')
         except Course.DoesNotExist:
             messages.error(request, 'Course not found')
@@ -375,7 +381,7 @@ def GenerateTimeTable(request, id):
 
         try:
             professor = Professor.objects.get(user=currentUser,
-                                              professor_id=sectioncourses[k].professor_id_id)
+                                              professor_id=sectioncourses[k].professor_id.professor_id)
         except Professor.DoesNotExist:
             messages.error(request, 'Professor not found')
             continue
@@ -520,8 +526,8 @@ def TimeTableView(request, id):
         else:
             messages.error(request, 'Error editing activity')
     context = {'section': section, 'courses': courses, 'professors':professors, 
-                    'activities': activities, 'timings':timelist, 'timingss':range(len(timelist)-len(breakcounts)), 'breaks':breakcounts,
-                    'breaklist':breaklist , 'activityform':activityform}
+                    'activities': activities, 'timings':timelist, 'timingss':range(section.no_sessions), 'breaks':breakcounts,
+                    'breaklist':breaklist , 'totalLength':section.no_sessions+len(breakcounts),'activityform':activityform}
     return render(request, 'timetableapp/TimeTable.html', context)
     
     

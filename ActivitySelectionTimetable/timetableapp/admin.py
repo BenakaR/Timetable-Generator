@@ -11,14 +11,14 @@ class ClassCourseDisp(admin.ModelAdmin):
     list_display = ('class_id','professor_id','course_id')
     list_editable = ('professor_id','course_id')
 
-class SectionDisp(admin.ModelAdmin):
-    search_fields = ('class_id','classroom_id')
-    list_display = ('class_id','classroom_id')
-    list_editable = ('classroom_id',)
+class CourseDisp(admin.ModelAdmin):
+    search_fields = ('user','course_id','course_name')
+    list_display = ('user','course_id','course_name')
+    # list_editable = ('course_id','course_name')
 
 admin.site.unregister(Group)
 
-admin.site.register(Course)
+admin.site.register(Course,CourseDisp)
 admin.site.register(Professor)
 admin.site.register(Class)
 admin.site.register(ClassCourse,ClassCourseDisp)

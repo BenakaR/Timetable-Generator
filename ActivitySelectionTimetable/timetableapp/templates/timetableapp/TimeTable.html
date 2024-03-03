@@ -124,7 +124,6 @@
           background-color: #dddddd;
         grid-area: week;
         display: grid;
-        grid-template-columns: repeat(9, auto);
         text-transform: uppercase;
         font-size: 1vw;
         }
@@ -173,7 +172,7 @@
         grid-area: content;
         display: grid;
         grid-template-rows: auto;
-        grid-template-columns: repeat(9, auto);
+        
         font-size: 1.1vw;
         }
         .timetable .content > div {
@@ -223,7 +222,7 @@
       <div class="weekend">sunday</div>
       -->
     </div>
-    <div class="time-interval accent-cyan-gradient">
+    <div class="time-interval accent-cyan-gradient" style="grid-template-columns: repeat({{totalLength}}, auto);">
       {% for x in timings %}
 				
         {% if x in breaklist %}
@@ -240,7 +239,7 @@
       <div>18:00 - 20:00</div>
       -->
     </div>
-    <div class="content accent-my-gradient">
+    <div class="content accent-my-gradient" style="grid-template-columns: repeat({{totalLength}}, auto);">
       {% for day in section.week_day %}
         {% for x in timingss %}
           {% if x in breaks %}
@@ -268,7 +267,6 @@
                 {% endif %}
               {% endfor %}
             {% endfor %} 
-                
             
           </div>
         {% endfor %}

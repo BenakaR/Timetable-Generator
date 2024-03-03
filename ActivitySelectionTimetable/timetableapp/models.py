@@ -3,12 +3,14 @@ from multiselectfield import MultiSelectField
 from django.contrib.auth.models import User
 
 class Course(models.Model):
+    class Meta:
+        unique_together = ('user','course_id')
     COURSE_TYPE = (
         ('Theory', 'Theory'),
         ('Lab', 'Lab')
     )
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    course_id = models.CharField(max_length=1000, primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    course_id = models.CharField(max_length=1000)
     course_name = models.CharField(max_length=1000)
     course_type = models.CharField(max_length=200, choices=COURSE_TYPE)
     credit_hours = models.PositiveIntegerField()
@@ -19,7 +21,7 @@ class Course(models.Model):
     
 
 class Professor(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     professor_id = models.CharField(max_length=2000,primary_key=True)
     professor_name = models.CharField(max_length=2000)
     working_hours = models.IntegerField(null=True,default=100)
@@ -37,8 +39,8 @@ class Class(models.Model):
     ('Friday', 'Friday'),
     ('Saturday', 'Saturday')
     )
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    class_id = models.CharField(max_length=2000, primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    class_id = models.CharField(max_length=2000)
     class_name = models.CharField(max_length=2000)
     week_day = MultiSelectField(max_length=2000, choices=WEEK_DAY, max_choices=6)
     no_sessions = models.PositiveIntegerField(default = 8)
@@ -56,7 +58,7 @@ class Class(models.Model):
 
 # table to store courses for class
 class ClassCourse(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     class Meta:
         unique_together = ('user','class_id', 'course_id')
     class_id = models.ForeignKey(Class, on_delete=models.CASCADE)
@@ -86,7 +88,7 @@ class Activity(models.Model):
     ('Friday', 'Friday'),
     ('Saturday', 'Saturday')
     )
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     activity_id = models.CharField(max_length=2000)
     activity_type = models.CharField(max_length=2000, choices=ACTIVITY_TYPE)
     class_id = models.CharField(max_length=200)
