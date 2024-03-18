@@ -1,10 +1,11 @@
+from typing import Iterable
 from django.db import models
 from multiselectfield import MultiSelectField
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from datetime import time
 
 class Course(models.Model):
-    class Meta:
-        unique_together = ('user','course_id')
     COURSE_TYPE = (
         ('Theory', 'Theory'),
         ('Lab', 'Lab')
@@ -15,9 +16,17 @@ class Course(models.Model):
     course_type = models.CharField(max_length=200, choices=COURSE_TYPE)
     credit_hours = models.PositiveIntegerField()
     contact_hours = models.PositiveIntegerField()
+    class Meta:
+        unique_together = ('user','course_id')
 
     def __str__(self):
         return self.course_id + ' - ' + self.course_name
+    
+    def save(self, *args, **kwargs):
+        if self.course_id == '123':
+            raise ValidationError('Cant put 123')
+        return super().save(*args, **kwargs)
+
     
 
 class Professor(models.Model):
@@ -45,12 +54,14 @@ class Class(models.Model):
     week_day = MultiSelectField(max_length=2000, choices=WEEK_DAY, max_choices=6)
     no_sessions = models.PositiveIntegerField(default = 8)
     class_mins = models.PositiveIntegerField(default = 60)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_time = models.TimeField(default=time(00,00))
+    end_time = models.TimeField(default=time(00,00))
     break_start = models.TimeField(null=True,blank=True)
     break_start_2 = models.TimeField(null=True,blank=True)
-    break_time = models.TimeField(null=True,blank=True)
-    break_time_2 = models.TimeField(null=True,blank=True)
+    break_end = models.TimeField(null=True,blank=True)
+    break_end_2 = models.TimeField(null=True,blank=True)
+    class Meta:
+        unique_together = ('user','class_id')
 
     def __str__(self):
         return self.class_id + ' - ' + self.class_name

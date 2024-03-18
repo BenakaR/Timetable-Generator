@@ -1,6 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django import forms
+from django.forms import ModelForm
 from .models import *
 
 
@@ -33,12 +34,14 @@ class ProfessorForm(forms.ModelForm):
         exclude = ['user']
         labels = {}
 
+class TimeInput(forms.TimeInput):
+    input_type = "time"
 
 class ClassForm(forms.ModelForm):
     class Meta:
         model = Class
         fields = ['user','class_id','class_name','week_day','no_sessions','class_mins','start_time',
-                    'end_time','break_start','break_time','break_start_2','break_time_2']
+                    'end_time','break_start','break_end','break_start_2','break_end_2']
         exclude = ['user']
         labels = {
             # 'class_id':'Class ID',
@@ -49,18 +52,18 @@ class ClassForm(forms.ModelForm):
             'start_time':'Start of the Day',
             'end_time':'End of the Day',
             'break_start':'Short break start time',
-            'break_time':'Short break end time',
+            'break_end':'Short break end time',
             'break_start_2':'Long break start time',
-            'break_time_2':'Long break end time',
+            'break_end_2':'Long break end time',
         }
-    def __init__(self, *args, **kwargs):
-        super(ClassForm, self).__init__(*args, **kwargs)
-        self.fields['start_time'].widget.attrs['placeholder'] = "HH:MM"
-        self.fields['end_time'].widget.attrs['placeholder'] = "HH:MM"
-        self.fields['break_start'].widget.attrs['placeholder'] = "HH:MM"
-        self.fields['break_time'].widget.attrs['placeholder'] = "HH:MM"
-        self.fields['break_start_2'].widget.attrs['placeholder'] = "HH:MM"
-        self.fields['break_time_2'].widget.attrs['placeholder'] = "HH:MM"
+        widgets = {
+            "start_time": TimeInput(),
+            "end_time" : TimeInput(),
+            "break_start": TimeInput(),
+            "break_end": TimeInput(),
+            "break_start_2": TimeInput(),
+            "break_end_2": TimeInput(),
+        }
         
 class ClassCourseForm(forms.ModelForm):
     class Meta:

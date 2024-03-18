@@ -13,9 +13,9 @@
     </div>
 
 
-	<div class="table-responsive-lg">
-        <table class="table ">
-            <thead class="thead-dark">
+	<div class="">
+        <table class="table text-center">
+            <thead class="table-header" style="color: white;">
 			<tr>
                 <div class="header__item filter__link" >
                    <th scope="col" class="text-center">Class ID</th>
@@ -46,27 +46,21 @@
             </thead>
 			
             
-			<tbody>
+			<tbody class="tab-content">
                 {% for section in sections %}
-				
-				    <tr>
-                
-					
-                        <th scope="row" class="table-light text-center">{{ section.class_id }}</th>
+				    <tr class="table-row text-center">
+                        <th scope="row" class="table-data">{{ section.class_id }}</th>
                     					
-						<th scope="row" class="table-dark text-center"  >{{ section.class_name }}</th>
+						<th scope="row" class="table-data"  >{{ section.class_name }}</th>
                   
-                        <th scope="row" class="table-light text-center"> <a href="{% url 'update-classview' section.class_id %}" class="btn btn-sm btn-info">Update</a></th>
+                        <th scope="row" class="table-data"> <a href="{% url 'update-classview' section.class_id %}" class="btn btn-sm btn-info">Update</a></th>
                    
-                        <th scope="row" class="table-dark text-center"> <a href="{% url 'delete-class' section.class_id %}" class="btn btn-sm btn-danger" >Remove</a></th>
+                        <th scope="row" class="table-data"> <a href="{% url 'delete-class' section.class_id %}" class="btn btn-sm btn-danger" >Remove</a></th>
 
-                        <th scope="row" class="table-light text-center"> <a href="{% url 'generate-timetable' section.class_id %}" class="btn btn-sm btn-danger" >Generate Timetable</a></th>
+                        <th scope="row" class="table-data"> <a href="{% url 'generate-timetable' section.class_id %}" class="btn btn-sm btn-danger" >Generate Timetable</a></th>
                 
-                        <th scope="row" class="table-dark text-center"> <a href="{% url 'timetable' section.class_id %}" class="btn btn-sm btn-danger" >View Timetable</a></th>
-
+                        <th scope="row" class="table-data"> <a href="{% url 'timetable' section.class_id %}" class="btn btn-sm btn-danger" >View Timetable</a></th>
 					</tr>
-				
-                
                 {% endfor %}
             </tbody>
         </table>

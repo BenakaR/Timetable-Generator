@@ -13,55 +13,43 @@
     </div>
 
 
-	<div class="table-responsive-lg">
-        <table class="table ">
-            <thead class="thead-dark">
+	<div class="" >
+        <table class="table text-center">
+            <thead class="table-header" style="color: white;">
 			<tr>
                 <div class="header__item filter__link" >
                    <th scope="col" class="text-center">Class</th>
-
                 </div>
                 <div class="header__item filter__link">
                   <th class="text-center" scope="col">Course</th>
-
                 </div>
                 <div class="header__item filter__link">
                    <th class="text-center" scope="col">Professor</th>
-
                 </div>
-
                 <div class="header__item filter__link">
                     <th class="text-center" scope="col">Update</th>
-
                 </div>
                 <div class="header__item filter__link">
                      <th class="text-center" scope="col">Delete</th>
-
                 </div>
 			</tr>	
             </thead>
-			
+			<tbody class="tab-content">
             
-			
                 {% for assign in AssignList %}
-				
-				<tr>
-                
+				<tr class="table-row text-center">
 					
-                        <th scope="row" class="table-light text-center">{{ assign.class_id }}</th>
+                        <th scope="row" class="table-data" style="height: 10vh important;">{{ assign.class_id }}</th>
                     
-					
-						<th scope="row" class="table-dark text-center"  >{{ assign.course_id }}</th>
+						<th scope="row" class="table-data" style="height: min-content;" >{{ assign.course_id }}</th>
                        
-						<th scope="row" class="table-light text-center"> {{ assign.professor_id}}</th>
+						<th scope="row" class="table-data"style="height: min-content;"> {{ assign.professor_id}}</th>
                    
-                        <th scope="row" class="table-dark text-center"> <a href="{% url 'update-classcourse' assign.id %}" class="btn btn-sm btn-info">Update</a></th>
+                        <th scope="row" class="table-data"style="height: min-content;"> <a href="{% url 'update-classcourse' assign.id %}" class="btn btn-sm btn-info">Update</a></th>
                    
-                        <th scope="row" class="table-light text-center"> <a href="{% url 'delete-classcourse' assign.id %}" class="btn btn-sm btn-danger" >Remove</a></th>
+                        <th scope="row" class="table-data"style="height: min-content;"> <a href="{% url 'delete-classcourse' assign.id %}" class="btn btn-sm btn-danger" >Remove</a></th>
                 
 					</tr>
-				
-                
                 {% endfor %}
             </tbody>
         </table>

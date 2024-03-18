@@ -4,10 +4,11 @@ from random import randint,choice
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from .forms import *
 from .models import *
-from django.contrib.auth.decorators import login_required
 from datetime import timedelta,datetime
+from django.db import IntegrityError
 
 errors = {}
 
@@ -41,7 +42,7 @@ def registerPage(request):
         return redirect('selection')
     else:
         form = CreateUserForm()
-        context = {'form':form}
+        context = {}
         if request.method == 'POST':
             form = CreateUserForm(request.POST)
             if form.is_valid():
@@ -50,7 +51,8 @@ def registerPage(request):
                 messages.success(request,'Account created successfully for ' + user)
                 context['success'] = 'Account created successfully for ' + user
 
-                return redirect('login')        
+                return redirect('login')    
+        context = {'form':form}
         return render(request, 'timetableapp/register.html', context)
 
 @login_required(login_url='login')
@@ -77,12 +79,15 @@ def CourseView(request):
     if request.method == 'POST' :
         course = CourseForm(request.POST)
         cors = course.save(commit = False)
-        if course.is_valid() and not Course.objects.filter(user=request.user,course_id=cors.course_id):
+        if course.is_valid():
             # messages.success(request, 'Course has been added successfully.')
-            context['success'] = 'Course has been added successfully.'
-            
             cors.user = request.user
-            cors.save()
+            try:
+                cors.save()
+                context['success'] = 'Course has been added successfully.'
+            except IntegrityError:
+                context['message'] = 'Course already exists.'
+
         else:
             # messages.error(request, 'Course already exists or you have added wrong attributes.')
             context['message'] = 'Course already exists or you have added wrong attributes.'
@@ -102,12 +107,19 @@ def updateCourseView(request, pk):
     context = {'course': course}
     if request.method == 'POST':
         course = CourseForm(request.POST, instance=form)
-        cors = course.save(commit = False)
-        if course.is_valid() and not Course.objects.filter(user=request.user,course_id=cors.course_id):
-            cors.save()
-            return redirect('/course_view')
+        if course.is_valid() :
+            cors = course.save(commit = False)
+            if (cors.course_id == pk):
+                cors.save()
+                return redirect('/course_view')
+            elif Course.objects.filter(user=request.user,course_id=form.course_id).count==0:
+                cors.save()
+                Course.objects.filter(user=request.user,course_id=pk).delete()
+                return redirect('/course_view')
+            else:
+                context['message']="Course ID already exists"
         else:
-            context['message']="Either Course ID already exists, or other details are invalid"
+            context['message']="Invalid details."
     return render(request, 'timetableapp/AddCourse.html', context)
 
 @login_required(login_url='login')
@@ -137,7 +149,7 @@ def ProfessorView(request):
             prof.save()
         else:
             # messages.error(request, 'Professor already exists or you have added wrong attributes.')
-            context['message'] = 'Professor already exists or you have added wrong attributes.'
+            context['message'] = 'Professor ID already exists or you have added wrong attributes.'
     return render(request, 'timetableapp/AddProfessor.html', context)
 
 @login_required(login_url='login')
@@ -148,14 +160,25 @@ def ProfessorTable(request):
 
 @login_required(login_url='login')
 def updateProfessorView(request, pk):
-    professor = Professor.objects.get(user=request.user,professor_id=pk)
-    form = ProfessorForm(instance=professor)
+    prof = Professor.objects.get(user=request.user,professor_id=pk)
+    form = ProfessorForm(instance=prof)
     context = {'form': form}
     if request.method == 'POST':
-        form = ProfessorForm(request.POST, instance=professor)
+        form = ProfessorForm(request.POST, instance=prof)
         if form.is_valid():
-            form.save()
-            return redirect('/add-professor')
+            formsave = form.save(commit=False)
+            if formsave.professor_id==pk :
+                formsave.save()
+                return redirect('professor_view')
+            elif Professor.objects.filter(user=request.user,professor_id=formsave.professor_id).count()==0:
+                formsave.save()
+                Professor.objects.get(user=request.user,professor_id=pk).delete()
+                return redirect('professor_view')
+            else:
+                context['message'] = 'Professor ID already exists'
+        else:
+            context['message'] = 'Invalid details.'
+
     return render(request, 'timetableapp/ViewSection.html', context)
 
 @login_required(login_url='login')
@@ -178,13 +201,16 @@ def ClassView(request):
         section = ClassForm(request.POST)
         if section.is_valid():  
             # messages.success(request, 'Class has been added.')
-            context['success'] = 'Class has been added.'
             sec = section.save(commit = False)
             sec.user = request.user
-            sec.save()
+            try:
+                sec.save()
+                context['success'] = 'Class has been added.'
+            except IntegrityError:
+                context['message'] = 'Class ID already exists'
         else:
             # messages.error(request, 'Do not enter the same class ID')
-            context['message'] = 'Do not enter the same class ID'
+            context['message'] = 'You have entered Wrong Attributes or haven\'t selected the Days'
     return render(request, 'timetableapp/AddClass.html', context)
 
 @login_required(login_url='login')
@@ -204,8 +230,16 @@ def updateClassView(request, pk):
     if request.method == 'POST':
         form = ClassForm(request.POST, instance=section)
         if form.is_valid():
-            form.save()
+            formsave = form.save(commit=False)
+            if formsave.class_id==pk:
+                formsave.save()
+                return redirect('class_view')
+            else:
+                context['message'] = 'Class ID already exists'
+        else:
+            context['message'] = 'You have entered Wrong Attributes or haven\'t selected the Days'
     return render(request, 'timetableapp/ViewClass.html', context)
+    
 
 @login_required(login_url='login')
 def deleteClass(request, pk):
@@ -213,7 +247,7 @@ def deleteClass(request, pk):
     context = {'delete': deleteClass}
     if request.method == 'POST':
         deleteActivities(request.user,pk)
-        ClassCourse.objects.filter(user=request.user,class_id=id).delete()
+        ClassCourse.objects.filter(user=request.user,class_id=deleteClass).delete()
         deleteClass.delete()
         return redirect('class_view')
     return render(request, 'timetableapp/deleteClass.html', context)
@@ -227,16 +261,16 @@ def ClassCourseView(request):
     if request.method == 'POST':
         sectioncourse = ClassCourseForm(request.user,request.POST)
         if sectioncourse.is_valid():
-            coursesave = sectioncourse.save(commit=False)
-            if ClassCourse.objects.filter(user=request.user,class_id=coursesave.class_id,course_id=coursesave.course_id):
-                # messages.error(request, 'Can not add duplicate course for class.')
-                context['message'] = 'Can not add duplicate course for class. Check for existing records.'
-            else:
-                # messages.success(request, "Course added for class.")
+            try:
+                sectioncourse.save()
                 context['success'] = 'Course added for class.'
-                coursesave.save()
+            except IntegrityError:
+                context['message'] = 'Can not add duplicate course for class. Check for existing records.'
+            except:
+                context['message'] = 'ERROR'
     return render(request, 'timetableapp/AddClassCourse.html', context)
 
+@login_required(login_url='login')
 def ClassCourseTable(request):
     AssignList= ClassCourse.objects.filter(user=request.user)
     context = {'AssignList': AssignList}
@@ -250,8 +284,13 @@ def updateClassCourse(request, pk):
     if request.method == 'POST':
         sectioncourse = ClassCourseForm(request.user,request.POST, instance=assign)
         if sectioncourse.is_valid():
-            sectioncourse.save()
-            return redirect('/classcourse')
+            try:
+                sectioncourse.save()
+                return redirect('/classcourse')
+            except IntegrityError:
+                context['message'] = 'Can not add duplicate course for class. Check for existing records.'
+            except:
+                context['message'] = 'ERROR'
     return render(request, 'timetableapp/AddClassCourse.html', context)
 
 @login_required(login_url='login')
@@ -476,13 +515,13 @@ def timeCalculate(usr,id):
     while st < end:
         if st.time()==section.break_start:
             s = str(st.time())[0:5]
-            e = datetime.combine(datetime.today(),section.break_time)
+            e = datetime.combine(datetime.today(),section.break_end)
             timelist.append( [str(st.time())[0:5] , str(e.time())[0:5]])
             st = e
             breakPosition.append(count)
         if st.time()==section.break_start_2:
             s = str(st.time())[0:5]
-            e = datetime.combine(datetime.today(),section.break_time_2)
+            e = datetime.combine(datetime.today(),section.break_end_2)
             timelist.append( [str(st.time())[0:5] , str(e.time())[0:5]])
             st = e
             breakPosition.append(count)
