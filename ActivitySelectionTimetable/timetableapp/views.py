@@ -310,8 +310,6 @@ def GenerateTimeTable(request, id):
     try:
         section = Class.objects.get(user=currentUser,class_id=id)
         sectioncourses = list(ClassCourse.objects.filter(user=currentUser,class_id=section))
-        print(sectioncourses)
-        print(section)
     except Class.DoesNotExist:
         messages.error(request, 'Class does not exist')
         return redirect('class_view')
