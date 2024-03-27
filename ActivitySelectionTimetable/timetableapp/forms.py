@@ -1,7 +1,6 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django import forms
-from django.forms import ModelForm
+from django.forms import ModelForm, TimeInput, MultipleChoiceField
 from .models import *
 
 
@@ -17,7 +16,7 @@ class CreateUserForm(UserCreationForm):
         self.fields['email'].required = False
 
 
-class CourseForm(forms.ModelForm):
+class CourseForm(ModelForm):
     class Meta:
         model = Course
         fields = ['user','course_id', 'course_name', 'course_type', 'credit_hours', 'contact_hours']
@@ -26,7 +25,7 @@ class CourseForm(forms.ModelForm):
                   'contact_hours':'Total hours per week'}
 
 
-class ProfessorForm(forms.ModelForm):
+class ProfessorForm(ModelForm):
     
     class Meta:
         model = Professor
@@ -34,10 +33,10 @@ class ProfessorForm(forms.ModelForm):
         exclude = ['user']
         labels = {}
 
-class TimeInput(forms.TimeInput):
+class TimeIn(TimeInput):
     input_type = "time"
 
-class ClassForm(forms.ModelForm):
+class ClassForm(ModelForm):
     class Meta:
         model = Class
         fields = ['user','class_id','class_name','week_day','no_sessions','class_mins','start_time',
@@ -57,15 +56,15 @@ class ClassForm(forms.ModelForm):
             'break_end_2':'Long break end time',
         }
         widgets = {
-            "start_time": TimeInput(),
-            "end_time" : TimeInput(),
-            "break_start": TimeInput(),
-            "break_end": TimeInput(),
-            "break_start_2": TimeInput(),
-            "break_end_2": TimeInput(),
+            "start_time": TimeIn(),
+            "end_time" : TimeIn(),
+            "break_start": TimeIn(),
+            "break_end": TimeIn(),
+            "break_start_2": TimeIn(),
+            "break_end_2": TimeIn(),
         }
         
-class ClassCourseForm(forms.ModelForm):
+class ClassCourseForm(ModelForm):
     class Meta:
         model = ClassCourse
         fields = ['user','class_id','course_id','professor_id']
@@ -77,7 +76,7 @@ class ClassCourseForm(forms.ModelForm):
         self.fields['professor_id'].queryset = Professor.objects.filter(user=user)
         self.fields['course_id'].queryset = Course.objects.filter(user=user)
 
-class ActivityForm(forms.ModelForm):
+class ActivityForm(ModelForm):
     class Meta:
         model = Activity
         fields = [ 'activity_type', 'course', 'day',
@@ -93,16 +92,21 @@ class ActivityForm(forms.ModelForm):
     ('Friday', 'Friday'),
     ('Saturday', 'Saturday')
     )
-    day = forms.MultipleChoiceField(choices=WEEK_DAY)
-    def __init__(self, *args,  **kwargs):
+    day = MultipleChoiceField(choices=WEEK_DAY)
+    def __init__(self, user, *args,  **kwargs):
         super(ActivityForm, self).__init__(*args, **kwargs)
         self.fields['start_time'].initial = 1
+        self.fields['course'].queryset = ClassCourse.objects.filter(user=user)
 
-class ActivityFormUpdate(forms.ModelForm):
+class ActivityFormUpdate(ModelForm):
     class Meta:
         model = Activity
-        fields = ['activity_type','course']
+        fields = ['user','activity_type','course']
+        exclude = ['user']
         labels = {
             'activity_type':'Should be Fixed During Generation?(Fixed/Replace) '
         }
+    def __init__(self, user, *args,  **kwargs):
+        super(ActivityFormUpdate, self).__init__(*args, **kwargs)
+        self.fields['course'].queryset = ClassCourse.objects.filter(user=user)
 

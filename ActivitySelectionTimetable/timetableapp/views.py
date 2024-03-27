@@ -26,7 +26,6 @@ def loginPage(request):
                 login(request, user)
                 return redirect('selection')
             else:
-                messages.info(request, 'Username or Password is Incorrect')
                 context['message'] = 'Username or Password is Incorrect.'
         
         return render(request, 'timetableapp/login.html', context)
@@ -57,18 +56,7 @@ def registerPage(request):
 
 @login_required(login_url='login')
 def home(request):
-    course = CourseForm()
-    professor = ProfessorForm()
-    section = ClassForm()
-    sectioncourse = ClassCourseForm(request.user)
-    activity = ActivityForm()
-    context = {
-                'course': course,'professor': professor,'section': section,
-                'sectioncourse': sectioncourse, 'activity': activity
-            }
-
-
-    return render(request, 'timetableapp/home.html', context)
+    return render(request, 'timetableapp/home.html')
 
 
 @login_required(login_url='login')
@@ -337,13 +325,13 @@ def GenerateTimeTable(request, id):
             course: Course = Course.objects.get(user=currentUser,course_type = 'Lab',
                                                 course_id=sectioncourses[k].course_id.course_id)
         except Course.DoesNotExist:
-            messages.error(request, 'Lab Course not found')
+            # messages.error(request, 'Lab Course not found')
             continue
 
         try:
             professor = Professor.objects.get(professor_id=sectioncourses[k].professor_id.professor_id)
         except Professor.DoesNotExist:
-            messages.error(request, 'Professor not found')
+            # messages.error(request, 'Professor not found')
             continue
 
         courseCount = Activity.objects.filter(user=currentUser,course=sectioncourses[k]).count()
@@ -354,7 +342,7 @@ def GenerateTimeTable(request, id):
             lecFlag = True
             if DupNum > workingHours + 5:
                 deleteActivities(currentUser,id,'Lab')
-                messages.error(request, 'Solution does not exist.')
+                # messages.error(request, 'Solution does not exist.')
                 errors['message'] = 'Solution does not exist.'
                 DupNum +=1
                 break
@@ -413,14 +401,14 @@ def GenerateTimeTable(request, id):
                                                 course_id=sectioncourses[k].course_id.course_id,
                                                 course_type = 'Theory')
         except Course.DoesNotExist:
-            messages.error(request, 'Course not found')
+            # messages.error(request, 'Course not found')
             continue
 
         try:
             professor = Professor.objects.get(user=currentUser,
                                               professor_id=sectioncourses[k].professor_id.professor_id)
         except Professor.DoesNotExist:
-            messages.error(request, 'Professor not found')
+            # messages.error(request, 'Professor not found')
             continue
 
         courseCount = Activity.objects.filter(user=currentUser,course=sectioncourses[k]).count()
@@ -434,7 +422,7 @@ def GenerateTimeTable(request, id):
             
             if DupNum > workingHours + 20:
                 deleteActivities(currentUser,id,'Theory')
-                messages.error(request, 'Solution does not exist.')
+                # messages.error(request, 'Solution does not exist.')
                 errors['message'] = 'Solution does not exist.'
                 DupNum +=1
                 break
@@ -536,7 +524,7 @@ def TimeTableView(request, id):
     try:
         section = Class.objects.get(user=request.user,class_id=id)
     except Class.DoesNotExist:
-        messages.error(request, 'Activity does not exist')
+        # messages.error(request, 'Activity does not exist')
         return redirect('class_view')
 
     courses = Course.objects.filter(user=request.user)
@@ -548,10 +536,10 @@ def TimeTableView(request, id):
     for i in breakcounts:
         breaklist.append(timelist[i+tmp])
         tmp += 1
-    activityform = ActivityForm()
+    activityform = ActivityForm(request.user)
     
     if request.method == 'POST':
-        actform = ActivityForm(request.POST)
+        actform = ActivityForm(request.user, request.POST)
         if actform.is_valid():
             act = actform.save(commit=False)
             act.end_time = act.start_time
@@ -561,7 +549,7 @@ def TimeTableView(request, id):
             Activity.objects.filter(user=request.user,activity_id=act.activity_id).delete()
             act.save()
         else:
-            messages.error(request, 'Error editing activity')
+            context['message'] = 'Error editing activity'
     context = {'section': section, 'courses': courses, 'professors':professors, 
                     'activities': activities, 'timings':timelist, 'timingss':range(section.no_sessions), 'breaks':breakcounts,
                     'breaklist':breaklist , 'totalLength':section.no_sessions+len(breakcounts),'activityform':activityform}
@@ -572,10 +560,10 @@ def TimeTableView(request, id):
 def AddActivity(request, pk):
     activity = Activity.objects.get(user=request.user,activity_id=pk)
     section = Class.objects.get(user=request.user,class_id = activity.class_id)
-    actform = ActivityFormUpdate(instance = activity)
+    actform = ActivityFormUpdate(request.user,instance = activity)
     context = {'actform': actform, 'section':section}
     if request.method == 'POST':
-        actform = ActivityFormUpdate(request.POST,instance=activity)
+        actform = ActivityFormUpdate(request.user,request.POST,instance=activity)
         if actform.is_valid():
             actform.save()
             return redirect('/timetable/'+ section.class_id)
